@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:stitch/widgets/navigation.dart';
 import 'core/theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
@@ -43,11 +44,11 @@ class MainApp extends StatelessWidget {
               : ThemeMode.light,
           initialRoute: '/',
           routes: {
-            '/': (context) => const HomeScreen(),
+            '/': (context) => const NavigationPage(),
+            'home': (context) => const HomeScreen(),
             '/select-pdf': (context) => const SelectPdfScreen(),
             '/success': (context) => const SuccessScreen(),
             '/profile': (context) => const ProfileScreen(),
-            '/settings': (context) => const SettingsScreen(),
             '/upgrade': (context) => const UpgradeScreen(),
             '/split-pdf': (context) => const SplitPdfScreen(),
           },

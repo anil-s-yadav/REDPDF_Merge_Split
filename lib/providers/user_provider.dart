@@ -4,9 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 class UserProvider with ChangeNotifier {
   static const String _premiumKey = 'isPremium';
   bool _isPremium =
-      true; // Based on screenshots showing premium features/styling
-  final String _name = 'Alex Johnson';
-  final String _email = 'alex.j@example.com';
+      false; // Based on screenshots showing premium features/styling
+  final String _name = 'Anil Yadav';
+  final String _email = 'anilyadav44x@gmail.com';
   late SharedPreferences _prefs;
 
   bool get isPremium => _isPremium;

@@ -41,9 +41,6 @@ class SelectPdfScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
-        ],
       ),
       body: Column(
         children: [
@@ -79,7 +76,9 @@ class SelectPdfScreen extends StatelessWidget {
           decoration: BoxDecoration(
             color: pdfTheme.mergeContainer,
             borderRadius: BorderRadius.circular(AppConstants.borderRadius20),
-            border: Border.all(color: pdfTheme.mergePrimary.withValues(alpha: 0.2)),
+            border: Border.all(
+              color: pdfTheme.mergePrimary.withValues(alpha: 0.2),
+            ),
           ),
           child: Row(
             children: [
@@ -101,8 +100,8 @@ class SelectPdfScreen extends StatelessWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: pdfTheme.mergePrimary.withValues(alpha: 
-                          0.8,
+                        color: pdfTheme.mergePrimary.withValues(
+                          alpha: 0.8,
                         ), // Use themed primary
                       ),
                     ),
@@ -205,6 +204,8 @@ class SelectPdfScreen extends StatelessWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('${file.name} removed'),
+                        persist: false,
+                        // duration: Durations.long4,
                         action: SnackBarAction(
                           label: 'UNDO',
                           onPressed: () => provider.addFiles([file]),
@@ -264,7 +265,9 @@ class SelectPdfScreen extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: pdfTheme.mergePrimary,
               foregroundColor: Colors.white,
-              disabledBackgroundColor: pdfTheme.mergePrimary.withValues(alpha: 0.3),
+              disabledBackgroundColor: pdfTheme.mergePrimary.withValues(
+                alpha: 0.3,
+              ),
               minimumSize: const Size(double.infinity, 60),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),

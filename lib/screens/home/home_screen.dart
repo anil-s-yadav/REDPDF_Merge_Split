@@ -81,11 +81,6 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.pushNamed(context, '/select-pdf'),
-        backgroundColor: pdfTheme.mergePrimary,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
     );
   }
 
@@ -110,10 +105,11 @@ class _HomeScreenState extends State<HomeScreen>
           ],
         ),
         GestureDetector(
-          onTap: () => Navigator.pushNamed(context, '/profile'),
+          onTap: () => Navigator.pushNamed(context, '/upgrade'),
           child: PremiumAvatar(
-            imageUrl: 'https://i.pravatar.cc/150?u=alex',
+            imageUrl: 'https://ui-avatars.com/api/?name=User',
             isPremium: user.isPremium,
+            size: 50,
           ),
         ),
       ],
@@ -149,6 +145,7 @@ class _HomeScreenState extends State<HomeScreen>
     PdfThemeExtension pdfTheme,
   ) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Expanded(
           child: Container(
@@ -157,7 +154,9 @@ class _HomeScreenState extends State<HomeScreen>
               controller: _tabController,
               isScrollable: true,
               labelColor: pdfTheme.mergePrimary,
-              unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.5),
+              unselectedLabelColor: colorScheme.onSurface.withValues(
+                alpha: 0.5,
+              ),
               indicatorColor: pdfTheme.mergePrimary,
               indicatorWeight: 3,
               indicatorSize: TabBarIndicatorSize.label,
@@ -212,7 +211,9 @@ class _HomeScreenState extends State<HomeScreen>
         child: Text(
           'No files yet',
           style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ),
       );
@@ -232,6 +233,8 @@ class _HomeScreenState extends State<HomeScreen>
             : pdfTheme.splitContainer;
 
         return Card(
+          shadowColor: containerColor,
+          elevation: 0,
           child: ListTile(
             leading: Container(
               padding: const EdgeInsets.all(8),
@@ -246,9 +249,12 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             title: Text(
               file.name,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              style: const TextStyle(fontWeight: FontWeight.w400),
             ),
-            subtitle: Text('${file.date} \u2022 ${file.size}'),
+            subtitle: Text(
+              '${file.date} \u2022 ${file.size}',
+              style: const TextStyle(fontWeight: FontWeight.w100, fontSize: 10),
+            ),
             trailing: const Icon(Icons.more_vert),
             onTap: () {},
           ),

@@ -28,7 +28,16 @@ class ActionPill extends StatelessWidget {
           height: 160,
           decoration: BoxDecoration(
             color: backgroundColor,
+            border: Border.all(color: textColor.withAlpha(80), width: 0.5),
             borderRadius: BorderRadius.circular(AppConstants.borderRadius24),
+            boxShadow: [
+              BoxShadow(
+                color: textColor.withAlpha(30),
+                spreadRadius: 5,
+                blurRadius: 10,
+                offset: Offset(0, 5),
+              ),
+            ],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

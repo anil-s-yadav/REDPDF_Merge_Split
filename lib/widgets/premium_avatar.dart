@@ -28,7 +28,9 @@ class PremiumAvatar extends StatelessWidget {
             gradient: isPremium
                 ? LinearGradient(colors: [pdfTheme.gold, pdfTheme.goldLight])
                 : null,
-            color: isPremium ? null : colorScheme.outline.withValues(alpha: 0.5),
+            color: isPremium
+                ? null
+                : colorScheme.outline.withValues(alpha: 0.5),
             boxShadow: [
               if (isPremium)
                 BoxShadow(
@@ -41,12 +43,14 @@ class PremiumAvatar extends StatelessWidget {
           child: CircleAvatar(
             radius: size / 2,
             backgroundColor: colorScheme.surface,
-            backgroundImage: NetworkImage(imageUrl),
+            backgroundImage: NetworkImage(
+              imageUrl,
+            ), //show image from google profile photo if not available show avatar
           ),
         ),
         if (isPremium)
           Positioned(
-            right: 0,
+            right: 30,
             bottom: 0,
             child: Container(
               padding: const EdgeInsets.all(4),
