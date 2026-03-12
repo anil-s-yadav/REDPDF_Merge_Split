@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path/path.dart' as p;
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
+import '../../providers/pdf_provider.dart';
+import '../../permission/permission_provider.dart';
+import '../viewer/pdf_viewer_screen.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class SuccessScreen extends StatelessWidget {
   final bool isSplit;
@@ -56,8 +64,6 @@ class SuccessScreen extends StatelessWidget {
             const Spacer(),
             _buildActionButtons(context, isSplit, pdfTheme),
             const SizedBox(height: 24),
-            _buildCloudBackupToggle(isSplit, pdfTheme, colorScheme),
-            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -93,6 +99,19 @@ class SuccessScreen extends StatelessWidget {
     PdfThemeExtension pdfTheme,
     ColorScheme colorScheme,
   ) {
+    final result = context.watch<PdfProvider>().lastResult;
+    final title = isSplit
+        ? (result?.zipPath != null
+              ? p.basename(result!.zipPath!)
+              : (result?.outputPaths.isNotEmpty == true
+                    ? p.basename(result!.outputPaths.first)
+                    : 'split_files'))
+        : (result?.outputPath != null
+              ? p.basename(result!.outputPath!)
+              : 'merged_document.pdf');
+    final subtitle = isSplit
+        ? '${result?.outputPaths.length ?? 0} files created'
+        : (result?.outputPath != null ? result!.outputPath! : '');
     return Container(
       padding: const EdgeInsets.all(AppConstants.spacing24),
       decoration: BoxDecoration(
@@ -121,22 +140,20 @@ class SuccessScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isSplit ? 'split_files_2024...' : 'merged_document_20...',
+                  title,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
                 ),
                 Text(
-                  isSplit ? '3 files created' : '2.4 MB \u2022 12 Pages',
+                  subtitle.isEmpty
+                      ? (isSplit ? 'Split complete' : 'Merge complete')
+                      : subtitle,
                   style: const TextStyle(color: Colors.grey),
                 ),
               ],
             ),
-          ),
-          Icon(
-            Icons.visibility_outlined,
-            color: isSplit ? pdfTheme.splitPrimary : pdfTheme.mergePrimary,
           ),
         ],
       ),
@@ -150,11 +167,32 @@ class SuccessScreen extends StatelessWidget {
   ) {
     final color = isSplit ? pdfTheme.splitPrimary : pdfTheme.mergePrimary;
     final onSurface = Theme.of(context).colorScheme.onSurface;
+    final provider = context.watch<PdfProvider>();
+    final permProv = context.read<PermissionProvider>();
 
     return Column(
       children: [
         ElevatedButton(
-          onPressed: () {},
+          onPressed: () async {
+            final result = provider.lastResult;
+            if (result == null) return;
+            if (!isSplit) {
+              final path = result.outputPath;
+              if (path == null) return;
+              if (!context.mounted) return;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      PdfViewerScreen(path: path, title: 'Merged PDF'),
+                ),
+              );
+              return;
+            }
+            if (result.outputPaths.isNotEmpty) {
+              await OpenFilex.open(result.outputPaths.first);
+            }
+          },
           style: ElevatedButton.styleFrom(
             backgroundColor: color,
             foregroundColor: Colors.white,
@@ -180,7 +218,58 @@ class SuccessScreen extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         OutlinedButton(
-          onPressed: () {},
+          onPressed: () async {
+            final result = provider.lastResult;
+            if (result == null) return;
+            final status = await permProv.ensureStoragePermission();
+            if (!context.mounted) return;
+            if (!status.isGranted) {
+              if (status.isPermanentlyDenied) {
+                await showDialog<void>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Permission required'),
+                    content: const Text(
+                      'Storage permission is permanently denied. '
+                      'Please enable it in system settings to manage PDFs on this device.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          Navigator.pop(ctx);
+                          await openAppSettings();
+                        },
+                        child: const Text('Open Settings'),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Storage permission is required to access PDFs on your device.',
+                    ),
+                  ),
+                );
+              }
+              return;
+            }
+            final paths = <String>[];
+            if (!isSplit) {
+              if (result.outputPath != null) paths.add(result.outputPath!);
+            } else {
+              paths.addAll(result.outputPaths);
+            }
+            if (paths.isEmpty) return;
+            await SharePlus.instance.share(
+              ShareParams(files: paths.map((p) => XFile(p)).toList()),
+            );
+          },
           style: OutlinedButton.styleFrom(
             minimumSize: const Size(double.infinity, 60),
             shape: RoundedRectangleBorder(
@@ -213,7 +302,20 @@ class SuccessScreen extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         TextButton.icon(
-          onPressed: () {},
+          onPressed: () async {
+            final result = provider.lastResult;
+            if (result == null) return;
+            // "Save to device" is platform dependent; we implement as "open in system"
+            // or "share" to a file manager destination.
+            final path = !isSplit
+                ? result.outputPath
+                : (result.zipPath ??
+                      (result.outputPaths.isNotEmpty
+                          ? result.outputPaths.first
+                          : null));
+            if (path == null) return;
+            await OpenFilex.open(path);
+          },
           icon: Icon(Icons.download_rounded, color: color),
           label: Text(
             'Save to Device',
@@ -225,50 +327,6 @@ class SuccessScreen extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildCloudBackupToggle(
-    bool isSplit,
-    PdfThemeExtension pdfTheme,
-    ColorScheme colorScheme,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Cloud Backup',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  'Automatically sync to your drive',
-                  style: TextStyle(
-                    color: colorScheme.onSurface.withValues(alpha: 0.5),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Switch(
-            value: true,
-            onChanged: (val) {},
-            activeThumbColor: isSplit
-                ? pdfTheme.splitPrimary
-                : pdfTheme.mergePrimary,
-          ),
-        ],
-      ),
     );
   }
 }

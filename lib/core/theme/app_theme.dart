@@ -10,11 +10,12 @@ class AppTheme {
   static const Color _lightSecondaryText = Color(0xFF6B7280);
   static const Color _lightBorder = Color(0xFFE5E7EB);
 
-  static const Color _darkBg = Color(0xFF0F172A);
-  static const Color _darkSurface = Color(0xFF1E293B);
-  static const Color _darkText = Color(0xFFF1F5F9);
-  static const Color _darkSecondaryText = Color(0xFF94A3B8);
-  static const Color _darkBorder = Color(0xFF334155);
+  // Better Dark Theme Palette
+  static const Color _darkBg = Color(0xFF0B0F19);
+  static const Color _darkSurface = Color(0xFF111827);
+  static const Color _darkText = Color(0xFFF9FAFB);
+  static const Color _darkSecondaryText = Color(0xFF9CA3AF);
+  static const Color _darkBorder = Color(0xFF1F2937);
 
   static ThemeData getLightTheme() {
     return ThemeData(
@@ -110,11 +111,11 @@ class AppTheme {
       extensions: const [
         PdfThemeExtension(
           mergePrimary: Color(0xFF22C55E),
-          mergeContainer: Color(0xFF14532D),
-          splitPrimary: Color(0xFFEF4444),
-          splitContainer: Color(0xFF7F1D1D),
+          mergeContainer: Color(0xFF052E16),
+          splitPrimary: Color(0xFFF43F5E),
+          splitContainer: Color(0xFF3F0D14),
           gold: Color(0xFFFACC15),
-          goldLight: Color(0xFFFFE082), // Adjusted for dark theme
+          goldLight: Color(0xFFFDE68A),
         ),
       ],
     );

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import '../core/theme/pdf_theme_extension.dart';
 
@@ -17,7 +19,7 @@ class PremiumAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final pdfTheme = Theme.of(context).extension<PdfThemeExtension>()!;
     final colorScheme = Theme.of(context).colorScheme;
-
+    log(imageUrl);
     return Stack(
       alignment: Alignment.topRight,
       children: [
@@ -42,10 +44,22 @@ class PremiumAvatar extends StatelessWidget {
           ),
           child: CircleAvatar(
             radius: size / 2,
-            backgroundColor: colorScheme.surface,
-            backgroundImage: NetworkImage(
-              imageUrl,
-            ), //show image from google profile photo if not available show avatar
+            backgroundColor: Colors.green.shade900,
+            child: ClipOval(
+              child: Image.network(
+                imageUrl,
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(Icons.person, size: size * 0.5);
+                },
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return const CircularProgressIndicator(strokeWidth: 2);
+                },
+              ),
+            ),
           ),
         ),
         if (isPremium)

@@ -6,6 +6,12 @@ import '../../providers/user_provider.dart';
 import '../../providers/pdf_provider.dart';
 import '../../widgets/premium_avatar.dart';
 import '../../widgets/action_pill.dart';
+import '../../models/pdf_models.dart';
+import '../../permission/permission_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import '../split_pdf/split_pdf_screen.dart' show SplitPdfScreen;
+import '../viewer/pdf_viewer_screen.dart';
+import 'package:share_plus/share_plus.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,6 +33,27 @@ class _HomeScreenState extends State<HomeScreen>
     _searchController.addListener(() {
       setState(() {});
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final permissionProvider = context.read<PermissionProvider>();
+      final status = await permissionProvider.ensureStoragePermission();
+      if (!mounted) return;
+      if (status.isGranted) {
+        await context.read<PdfProvider>().refreshSystemFiles();
+      } else if (status.isDenied) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Storage permission is required to access PDFs on your device.',
+            ),
+          ),
+        );
+      } else if (status.isPermanentlyDenied) {
+        if (!mounted) return;
+        _showPermissionSettingsDialog(context);
+      }
+    });
   }
 
   @override
@@ -42,6 +69,7 @@ class _HomeScreenState extends State<HomeScreen>
     final pdfProvider = context.watch<PdfProvider>();
     final pdfTheme = Theme.of(context).extension<PdfThemeExtension>()!;
     final colorScheme = Theme.of(context).colorScheme;
+    final query = _searchController.text.toLowerCase();
 
     return Scaffold(
       body: SafeArea(
@@ -51,6 +79,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               const SizedBox(height: AppConstants.spacing24),
               _buildHeader(context, userProvider),
@@ -64,6 +93,13 @@ class _HomeScreenState extends State<HomeScreen>
                   controller: _tabController,
                   children: [
                     _buildFileList(
+                      pdfProvider.systemFiles
+                          .where((f) => f.name.toLowerCase().contains(query))
+                          .toList(),
+                      pdfTheme,
+                      isSystem: true,
+                    ), //system files
+                    _buildFileList(
                       pdfProvider.history
                           .where(
                             (f) => f.name.toLowerCase().contains(
@@ -72,8 +108,8 @@ class _HomeScreenState extends State<HomeScreen>
                           )
                           .toList(),
                       pdfTheme,
+                      isHistory: true,
                     ),
-                    _buildFileList([], pdfTheme),
                   ],
                 ),
               ),
@@ -92,14 +128,14 @@ class _HomeScreenState extends State<HomeScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Convert PDF - all tools',
+              'PDF - Merge and Split',
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
-              'Select any document or image to get\nstarted',
+              'Combine or split your PDF files \nwith ease. ',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
@@ -109,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen>
           child: PremiumAvatar(
             imageUrl: 'https://ui-avatars.com/api/?name=User',
             isPremium: user.isPremium,
-            size: 50,
+            // size: 50,
           ),
         ),
       ],
@@ -146,12 +182,14 @@ class _HomeScreenState extends State<HomeScreen>
   ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Container(
             alignment: Alignment.centerLeft,
             child: TabBar(
               controller: _tabController,
+              tabAlignment: TabAlignment.start,
               isScrollable: true,
               labelColor: pdfTheme.mergePrimary,
               unselectedLabelColor: colorScheme.onSurface.withValues(
@@ -160,10 +198,10 @@ class _HomeScreenState extends State<HomeScreen>
               indicatorColor: pdfTheme.mergePrimary,
               indicatorWeight: 3,
               indicatorSize: TabBarIndicatorSize.label,
-              labelPadding: const EdgeInsets.symmetric(horizontal: 16),
+              // labelPadding: const EdgeInsets.symmetric(horizontal: 16),
               tabs: const [
-                Tab(text: 'History'),
                 Tab(text: 'All Files'),
+                Tab(text: 'History'),
               ],
               dividerColor: Colors.transparent,
             ),
@@ -190,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen>
         if (!_isSearching)
           TextButton(
             onPressed: () {
-              context.read<PdfProvider>().clearHistory();
+              _confirmClearHistory(context);
             },
             child: Text(
               'CLEAR ALL',
@@ -205,16 +243,103 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildFileList(List<PdfFile> files, PdfThemeExtension pdfTheme) {
+  Future<void> _confirmClearHistory(BuildContext context) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Clear history?'),
+        content: const Text('This will remove all history entries.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Clear'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true && context.mounted) {
+      await context.read<PdfProvider>().clearHistory();
+    }
+  }
+
+  Future<void> _showPermissionSettingsDialog(BuildContext context) async {
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Permission required'),
+        content: const Text(
+          'Storage permission is permanently denied. '
+          'Please enable it in system settings to manage PDFs on this device.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await openAppSettings();
+            },
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFileList(
+    List<PdfFile> files,
+    PdfThemeExtension pdfTheme, {
+    bool isHistory = false,
+    bool isSystem = false,
+  }) {
     if (files.isEmpty) {
       return Center(
-        child: Text(
-          'No files yet',
-          style: TextStyle(
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurface.withValues(alpha: 0.5),
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              isSystem ? 'No files indexed yet' : 'No files yet',
+              style: TextStyle(
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
+            ),
+            if (isSystem) ...[
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () async {
+                  final permProv = context.read<PermissionProvider>();
+                  final status = await permProv.ensureStoragePermission();
+                  if (!context.mounted) return;
+                  if (!status.isGranted) {
+                    if (status.isPermanentlyDenied) {
+                      await _showPermissionSettingsDialog(context);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Storage permission is required to access PDFs on your device.',
+                          ),
+                        ),
+                      );
+                    }
+                    return;
+                  }
+                  await context.read<PdfProvider>().refreshSystemFiles(
+                    forceRescan: true,
+                  );
+                },
+                child: const Text('Scan'),
+              ),
+            ],
+          ],
         ),
       );
     }
@@ -255,8 +380,108 @@ class _HomeScreenState extends State<HomeScreen>
               '${file.date} \u2022 ${file.size}',
               style: const TextStyle(fontWeight: FontWeight.w100, fontSize: 10),
             ),
-            trailing: const Icon(Icons.more_vert),
-            onTap: () {},
+            trailing: PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (value) async {
+                final path = file.path;
+                final pdfProv = context.read<PdfProvider>();
+                final permProv = context.read<PermissionProvider>();
+                if (value == 'open' && path != null) {
+                  if (!mounted) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          PdfViewerScreen(path: path, title: file.name),
+                    ),
+                  );
+                } else if (value == 'merge' && path != null) {
+                  pdfProv.addFiles([
+                    PdfFile(
+                      name: file.name,
+                      date: file.date,
+                      size: file.size,
+                      path: path,
+                      isMerge: true,
+                    ),
+                  ]);
+                  if (!mounted) return;
+                  Navigator.pushNamed(context, '/select-pdf');
+                } else if (value == 'split' && path != null) {
+                  if (!mounted) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SplitPdfScreen(),
+                      settings: RouteSettings(arguments: path),
+                    ),
+                  );
+                } else if (value == 'share' && path != null) {
+                  final status = await permProv.ensureStoragePermission();
+                  if (!mounted) return;
+                  if (!status.isGranted) {
+                    if (status.isPermanentlyDenied) {
+                      await _showPermissionSettingsDialog(context);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Storage permission is required to access PDFs on your device.',
+                          ),
+                        ),
+                      );
+                    }
+                    return;
+                  }
+                  await SharePlus.instance.share(
+                    ShareParams(files: [XFile(path)]),
+                  );
+                } else if (value == 'delete') {
+                  final ok = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Delete file?'),
+                      content: Text('Delete "${file.name}" from device?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: const Text('Delete'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (ok == true && mounted) {
+                    await pdfProv.deleteFile(
+                      file,
+                      fromHistory: isHistory,
+                      fromSystem: isSystem,
+                    );
+                  }
+                }
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem(value: 'open', child: Text('Open')),
+                PopupMenuItem(value: 'merge', child: Text('Select to merge')),
+                PopupMenuItem(value: 'split', child: Text('Select to split')),
+                PopupMenuItem(value: 'share', child: Text('Share')),
+                PopupMenuItem(value: 'delete', child: Text('Delete')),
+              ],
+            ),
+            onTap: file.path == null
+                ? null
+                : () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            PdfViewerScreen(path: file.path!, title: file.name),
+                      ),
+                    );
+                  },
           ),
         );
       },

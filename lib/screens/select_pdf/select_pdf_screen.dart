@@ -4,11 +4,33 @@ import 'package:file_picker/file_picker.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
 import '../../providers/pdf_provider.dart';
+import '../../models/pdf_models.dart';
+import '../../permission/permission_provider.dart';
+import '../success/success_screen.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class SelectPdfScreen extends StatelessWidget {
   const SelectPdfScreen({super.key});
 
   Future<void> _pickFiles(BuildContext context, PdfProvider provider) async {
+    final permissionProvider = context.read<PermissionProvider>();
+    final status = await permissionProvider.ensureStoragePermission();
+    if (!context.mounted) return;
+    if (!status.isGranted) {
+      if (status.isPermanentlyDenied) {
+        await _showPermissionSettingsDialog(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Storage permission is required to access PDFs on your device.',
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
@@ -26,6 +48,88 @@ class SelectPdfScreen extends StatelessWidget {
       }).toList();
       provider.addFiles(files);
     }
+  }
+
+  Future<void> _merge(BuildContext context, PdfProvider provider) async {
+    try {
+      final res = await provider.mergeSelected();
+      if (res == null) {
+        if (context.mounted && provider.error != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(provider.error!)),
+          );
+        }
+        return;
+      }
+      if (!context.mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SuccessScreen(isSplit: false)),
+      );
+    } on PdfPasswordRequired catch (e) {
+      if (!context.mounted) return;
+      final controller = TextEditingController();
+      final pwd = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('Password required'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Enter password for ${e.name}'),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'Password'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, controller.text),
+              child: const Text('Continue'),
+            ),
+          ],
+        ),
+      );
+      if (pwd == null || pwd.isEmpty) return;
+      // Retry with password for that one file.
+      await provider.mergeSelected(passwords: {e.path: pwd});
+      if (!context.mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SuccessScreen(isSplit: false)),
+      );
+    }
+  }
+
+  Future<void> _showPermissionSettingsDialog(BuildContext context) async {
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Permission required'),
+        content: const Text(
+          'Storage permission is permanently denied. '
+          'Please enable it in system settings to manage PDFs on this device.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await openAppSettings();
+            },
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -165,21 +269,30 @@ class SelectPdfScreen extends StatelessWidget {
   ) {
     final files = provider.selectedFiles;
 
-    return ListView.separated(
+    return ReorderableListView.builder(
       padding: const EdgeInsets.all(AppConstants.spacing24),
       itemCount: files.length + 1,
-      separatorBuilder: (context, index) =>
-          const SizedBox(height: AppConstants.spacing16),
+      onReorder: provider.reorderSelected,
+      proxyDecorator: (child, index, animation) => Material(
+        elevation: 6,
+        borderRadius: BorderRadius.circular(16),
+        child: child,
+      ),
       itemBuilder: (context, index) {
         if (index == files.length) {
-          return InkWell(
-            onTap: () => _pickFiles(context, provider),
-            borderRadius: BorderRadius.circular(30),
-            child: _buildDashContainer(colorScheme),
+          return Padding(
+            key: const ValueKey('__add_more__'),
+            padding: const EdgeInsets.only(top: AppConstants.spacing16),
+            child: InkWell(
+              onTap: () => _pickFiles(context, provider),
+              borderRadius: BorderRadius.circular(30),
+              child: _buildDashContainer(colorScheme),
+            ),
           );
         }
         final file = files[index];
         return Card(
+          key: ValueKey(file.path ?? '${file.name}-$index'),
           child: ListTile(
             leading: Container(
               padding: const EdgeInsets.all(8),
@@ -214,7 +327,10 @@ class SelectPdfScreen extends StatelessWidget {
                     );
                   },
                 ),
-                const Icon(Icons.drag_indicator, color: Colors.grey),
+                ReorderableDragStartListener(
+                  index: index,
+                  child: const Icon(Icons.drag_indicator, color: Colors.grey),
+                ),
               ],
             ),
           ),
@@ -257,9 +373,25 @@ class SelectPdfScreen extends StatelessWidget {
         children: [
           ElevatedButton(
             onPressed: canProcess
-                ? () {
-                    provider.processPdf();
-                    Navigator.pushNamed(context, '/success');
+                ? () async {
+                    final perm = context.read<PermissionProvider>();
+                    final status = await perm.ensureStoragePermission();
+                    if (!context.mounted) return;
+                    if (!status.isGranted) {
+                      if (status.isPermanentlyDenied) {
+                        await _showPermissionSettingsDialog(context);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Storage permission is required to access PDFs on your device.',
+                            ),
+                          ),
+                        );
+                      }
+                      return;
+                    }
+                    await _merge(context, provider);
                   }
                 : null,
             style: ElevatedButton.styleFrom(
@@ -297,7 +429,7 @@ class SelectPdfScreen extends StatelessWidget {
               Icon(Icons.lock_outline, size: 14, color: Colors.grey),
               SizedBox(width: 4),
               Text(
-                'SECURE CLOUD PROCESSING',
+                'SECURE AND FAST PROCESSING',
                 style: TextStyle(
                   color: Colors.grey,
                   fontSize: 10,

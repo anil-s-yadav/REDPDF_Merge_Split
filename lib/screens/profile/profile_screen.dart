@@ -36,7 +36,6 @@ class ProfileScreen extends StatelessWidget {
                 leading: PremiumAvatar(
                   imageUrl: 'https://ui-avatars.com/api/?name=User',
                   isPremium: userProvider.isPremium,
-                  size: 120,
                 ),
                 title: Text(
                   userProvider.name,
@@ -52,23 +51,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              // const SizedBox(height: 40),
-              // PremiumAvatar(
-              //   imageUrl: 'https://i.pravatar.cc/150?u=alex',
-              //   isPremium: userProvider.isPremium,
-              //   size: 120,
-              // ),
-              // const SizedBox(height: 16),
-              // Text(
-              //   userProvider.name,
-              //   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              // ),
-              // Text(
-              //   userProvider.email,
-              //   style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.6)),
-              // ),
-              // const SizedBox(height: 24),
-              // _buildPlanBadge(userProvider.isPremium, pdfTheme),
+
               const SizedBox(height: 35),
               _buildUpgradeCard(pdfTheme),
               const SizedBox(height: 30),

@@ -5,13 +5,14 @@ import 'core/theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/pdf_provider.dart';
+import 'permission/permission_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/select_pdf/select_pdf_screen.dart';
 import 'screens/success/success_screen.dart';
 import 'screens/profile/profile_screen.dart';
-import 'screens/settings/settings_screen.dart';
 import 'screens/upgrade/upgrade_screen.dart';
 import 'screens/split_pdf/split_pdf_screen.dart';
+import 'screens/viewer/pdf_viewer_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => PdfProvider()),
+        ChangeNotifierProvider(create: (_) => PermissionProvider()),
       ],
       child: const MainApp(),
     ),
@@ -51,6 +53,8 @@ class MainApp extends StatelessWidget {
             '/profile': (context) => const ProfileScreen(),
             '/upgrade': (context) => const UpgradeScreen(),
             '/split-pdf': (context) => const SplitPdfScreen(),
+            '/viewer': (context) =>
+                const PdfViewerScreen(path: '', title: 'PDF Viewer'),
           },
         );
       },
