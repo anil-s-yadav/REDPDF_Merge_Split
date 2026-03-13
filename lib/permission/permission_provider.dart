@@ -29,11 +29,12 @@ class PermissionProvider with ChangeNotifier {
   /// - Requests permission if not granted
   /// Returns the final [PermissionStatus].
   Future<PermissionStatus> ensureStoragePermission() async {
-    await checkStoragePermission();
-    if (_storageStatus.isGranted) return _storageStatus;
+    final current = await checkStoragePermission();
+    if (current.isGranted) return current;
 
-    await requestStoragePermission();
-    return _storageStatus;
+    debugPrint('Requesting storage permission...');
+    final result = await requestStoragePermission();
+    debugPrint('Permission result: $result');
+    return result;
   }
 }
-

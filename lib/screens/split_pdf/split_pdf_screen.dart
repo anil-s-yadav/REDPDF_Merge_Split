@@ -5,15 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
-import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
 import '../../models/pdf_models.dart';
 import '../../providers/pdf_provider.dart';
-import '../../services/file_index_service.dart';
-import '../../permission/permission_provider.dart';
 import '../success/success_screen.dart';
 import '../viewer/pdf_viewer_screen.dart';
-import 'package:permission_handler/permission_handler.dart';
+import '../processing/processing_screen.dart';
 
 enum _SplitMode { extract, everyPage, range, delete }
 
@@ -53,23 +50,6 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
   }
 
   Future<void> _pickPdf() async {
-    final perm = context.read<PermissionProvider>();
-    final status = await perm.ensureStoragePermission();
-    if (!mounted) return;
-    if (!status.isGranted) {
-      if (status.isPermanentlyDenied) {
-        await _showPermissionSettingsDialog(context);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Storage permission is required to access PDFs on your device.',
-            ),
-          ),
-        );
-      }
-      return;
-    }
     final res = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
@@ -162,12 +142,18 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
     final raw = _extractController.text;
     final nums =
         raw
+            .replaceAll('-', ',')
             .split(RegExp(r'[,\s]+'))
             .map((s) => int.tryParse(s.trim()))
             .whereType<int>()
             .toSet()
             .toList()
           ..sort();
+
+    if (_pageCount != null) {
+      nums.removeWhere((n) => n > _pageCount! || n < 1);
+    }
+
     final ranges = nums.map((n) => PageRange(n, n)).toList();
     return ranges;
   }
@@ -176,56 +162,75 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
     final path = _inputPath;
     if (path == null) return;
     final ranges = _buildRanges();
-    if (ranges.isEmpty) {
+    if (ranges.isEmpty && _mode != _SplitMode.everyPage) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter valid ranges/pages.')),
+        const SnackBar(
+          content: Text('Please enter valid pages (within document range).'),
+        ),
       );
       return;
     }
+    final file = File(path);
+    final bytes = await file.length();
+    final sizeStr = provider.formatBytes(bytes);
+    final isLarge = bytes > 2 * 1024 * 1024;
+
     try {
-      final perm = context.read<PermissionProvider>();
-      final status = await perm.ensureStoragePermission();
-      if (!mounted) return;
-      if (!status.isGranted) {
-        if (status.isPermanentlyDenied) {
-          await _showPermissionSettingsDialog(context);
-        } else {
+      if (_mode == _SplitMode.delete && _pageCount != null) {
+        final toDelete = ranges.map((r) => r.from).toSet();
+        final surviving = <int>[];
+        for (var i = 1; i <= _pageCount!; i++) {
+          if (!toDelete.contains(i)) surviving.add(i);
+        }
+
+        if (surviving.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                'Storage permission is required to access PDFs on your device.',
+                'Cannot delete all pages. At least one page must remain.',
               ),
             ),
           );
+          return;
         }
-        return;
-      }
-      final effectiveRanges =
-          _mode == _SplitMode.everyPage && _pageCount != null
-          ? List<PageRange>.generate(
-              _pageCount!,
-              (i) => PageRange(i + 1, i + 1),
-            )
-          : ranges;
 
-      final res = await provider.split(
-        inputPath: path,
-        ranges: effectiveRanges,
-      );
-      if (res == null) {
         if (!mounted) return;
-        if (provider.error != null) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(provider.error!)));
-        }
-        return;
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProcessingScreen(
+              type: ProcessingJobType.extract,
+              estimatedSize: sizeStr,
+              isLarge: isLarge,
+              inputPath: path,
+              pages: surviving,
+              suffix: 'edited',
+            ),
+          ),
+        );
+      } else {
+        final effectiveRanges =
+            _mode == _SplitMode.everyPage && _pageCount != null
+                ? List<PageRange>.generate(
+                    _pageCount!,
+                    (i) => PageRange(i + 1, i + 1),
+                  )
+                : ranges;
+
+        if (!mounted) return;
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProcessingScreen(
+              type: ProcessingJobType.split,
+              estimatedSize: sizeStr,
+              isLarge: isLarge,
+              inputPath: path,
+              ranges: effectiveRanges,
+            ),
+          ),
+        );
       }
-      if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const SuccessScreen(isSplit: true)),
-      );
     } on PdfPasswordRequired catch (e) {
       if (!mounted) return;
       final controller = TextEditingController();
@@ -259,50 +264,40 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
         ),
       );
       if (pwd == null || pwd.isEmpty) return;
-      final effectiveRanges =
-          _mode == _SplitMode.everyPage && _pageCount != null
-          ? List<PageRange>.generate(
-              _pageCount!,
-              (i) => PageRange(i + 1, i + 1),
-            )
-          : ranges;
-      await provider.split(
-        inputPath: path,
-        ranges: effectiveRanges,
-        password: pwd,
-      );
+
+      if (_mode == _SplitMode.delete && _pageCount != null) {
+        final toDelete = ranges.map((r) => r.from).toSet();
+        final surviving = <int>[];
+        for (var i = 1; i <= _pageCount!; i++) {
+          if (!toDelete.contains(i)) surviving.add(i);
+        }
+        await provider.extract(
+          inputPath: path,
+          pages: surviving,
+          password: pwd,
+          outputNameSuffix: 'edited',
+        );
+      } else {
+        final effectiveRanges =
+            _mode == _SplitMode.everyPage && _pageCount != null
+            ? List<PageRange>.generate(
+                _pageCount!,
+                (i) => PageRange(i + 1, i + 1),
+              )
+            : ranges;
+        await provider.split(
+          inputPath: path,
+          ranges: effectiveRanges,
+          password: pwd,
+        );
+      }
+
       if (!mounted) return;
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const SuccessScreen(isSplit: true)),
       );
     }
-  }
-
-  Future<void> _showPermissionSettingsDialog(BuildContext context) async {
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Permission required'),
-        content: const Text(
-          'Storage permission is permanently denied. '
-          'Please enable it in system settings to manage PDFs on this device.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await openAppSettings();
-            },
-            child: const Text('Open Settings'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -319,6 +314,8 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
 
     final path = _inputPath;
     final canSplit = path != null && !provider.isProcessing;
+
+    final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -344,7 +341,7 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppConstants.spacing24),
+        padding: EdgeInsets.all(size.width * 0.06),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -420,6 +417,12 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
                 ),
                 keyboardType: TextInputType.text,
               ),
+              const SizedBox(height: 8),
+              if (_mode == _SplitMode.extract)
+                const Text(
+                  'Each page becomes its own PDF.',
+                  style: TextStyle(color: Colors.grey),
+                ),
             ] else if (_mode == _SplitMode.everyPage) ...[
               const Text(
                 'Split every page',
@@ -437,23 +440,7 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
             _buildModeDescription(),
             const SizedBox(height: 24),
             if (provider.isProcessing) ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => provider.requestCancel(),
-                      icon: const Icon(Icons.close),
-                      label: const Text('Cancel'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: pdfTheme.splitPrimary,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 56),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 24),
               const LinearProgressIndicator(),
             ] else ...[
               ElevatedButton(
@@ -508,7 +495,12 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
               color: pdfTheme.splitContainer,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.picture_as_pdf, color: pdfTheme.splitPrimary),
+            child: has
+                ? Icon(Icons.picture_as_pdf, color: pdfTheme.splitPrimary)
+                : Icon(
+                    Icons.help_center_outlined,
+                    color: pdfTheme.splitPrimary,
+                  ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -547,6 +539,28 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          InkWell(
+            onTap: () => setState(() => _mode = _SplitMode.range),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: _mode == _SplitMode.range
+                    ? colorScheme.surface
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                ' By Range ',
+                style: TextStyle(
+                  color: _mode == _SplitMode.range
+                      ? pdfTheme.splitPrimary
+                      : Colors.grey,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
           InkWell(
             onTap: () => setState(() => _mode = _SplitMode.extract),
             borderRadius: BorderRadius.circular(12),
@@ -591,28 +605,7 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
               ),
             ),
           ),
-          InkWell(
-            onTap: () => setState(() => _mode = _SplitMode.range),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: _mode == _SplitMode.range
-                    ? colorScheme.surface
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                ' By Range ',
-                style: TextStyle(
-                  color: _mode == _SplitMode.range
-                      ? pdfTheme.splitPrimary
-                      : Colors.grey,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
+
           InkWell(
             onTap: () => setState(() => _mode = _SplitMode.delete),
             borderRadius: BorderRadius.circular(12),

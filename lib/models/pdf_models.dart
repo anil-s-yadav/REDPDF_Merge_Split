@@ -92,3 +92,21 @@ class PdfPasswordRequired implements Exception {
   String toString() => 'PdfPasswordRequired(name: $name, path: $path)';
 }
 
+
+class PageRange {
+  final int from; // 1-based inclusive
+  final int to; // 1-based inclusive
+
+  const PageRange(this.from, this.to);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PageRange &&
+          runtimeType == other.runtimeType &&
+          from == other.from &&
+          to == other.to;
+
+  @override
+  int get hashCode => from.hashCode ^ to.hashCode;
+}

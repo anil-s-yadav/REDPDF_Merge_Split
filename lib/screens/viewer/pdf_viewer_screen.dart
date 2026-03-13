@@ -12,9 +12,7 @@ class PdfViewerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title ?? 'PDF Viewer'),
-      ),
+      appBar: AppBar(title: Text(title ?? 'PDF Viewer')),
       body: File(path).existsSync()
           ? SfPdfViewer.file(File(path))
           : Center(
@@ -26,4 +24,3 @@ class PdfViewerScreen extends StatelessWidget {
     );
   }
 }
-

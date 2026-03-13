@@ -7,9 +7,7 @@ import 'package:path/path.dart' as p;
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
 import '../../providers/pdf_provider.dart';
-import '../../permission/permission_provider.dart';
 import '../viewer/pdf_viewer_screen.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class SuccessScreen extends StatelessWidget {
   final bool isSplit;
@@ -20,10 +18,11 @@ class SuccessScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final pdfTheme = Theme.of(context).extension<PdfThemeExtension>()!;
     final colorScheme = Theme.of(context).colorScheme;
+    final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Success'),
+        title: Text(isSplit ? 'Split PDF' : 'Merge PDF'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () =>
@@ -31,12 +30,12 @@ class SuccessScreen extends StatelessWidget {
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacing24),
+        padding: EdgeInsets.symmetric(horizontal: size.width * 0.06),
         child: Column(
           children: [
-            const SizedBox(height: 40),
+            SizedBox(height: size.height * 0.03),
             _buildSuccessAnimation(isSplit, pdfTheme),
-            const SizedBox(height: 32),
+            SizedBox(height: size.height * 0.03),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -53,17 +52,27 @@ class SuccessScreen extends StatelessWidget {
                 Icon(Icons.stars, color: pdfTheme.gold, size: 24),
               ],
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Your files have been combined into a single high-\nquality document. Premium features were applied.',
+            SizedBox(height: size.height * 0.01),
+            Text(
+              isSplit
+                  ? 'Your files have been split and saved to\nyour device.'
+                  : 'Your files have been combined into a single\nhigh-quality document.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey),
+              style: const TextStyle(color: Colors.grey),
             ),
-            const SizedBox(height: 48),
-            _buildFileCard(context, isSplit, pdfTheme, colorScheme),
-            const Spacer(),
-            _buildActionButtons(context, isSplit, pdfTheme),
-            const SizedBox(height: 24),
+            SizedBox(height: size.height * 0.04),
+            Expanded(
+              child: _buildResultSection(
+                context,
+                isSplit,
+                pdfTheme,
+                colorScheme,
+                size,
+              ),
+            ),
+            SizedBox(height: size.height * 0.02),
+            _buildActionButtons(context, isSplit, pdfTheme, size),
+            SizedBox(height: size.height * 0.03),
           ],
         ),
       ),
@@ -93,35 +102,86 @@ class SuccessScreen extends StatelessWidget {
         .rotate(begin: -0.5, end: 0);
   }
 
-  Widget _buildFileCard(
+  Widget _buildResultSection(
     BuildContext context,
     bool isSplit,
     PdfThemeExtension pdfTheme,
     ColorScheme colorScheme,
+    Size size,
   ) {
     final result = context.watch<PdfProvider>().lastResult;
-    final title = isSplit
-        ? (result?.zipPath != null
-              ? p.basename(result!.zipPath!)
-              : (result?.outputPaths.isNotEmpty == true
-                    ? p.basename(result!.outputPaths.first)
-                    : 'split_files'))
-        : (result?.outputPath != null
-              ? p.basename(result!.outputPath!)
-              : 'merged_document.pdf');
-    final subtitle = isSplit
-        ? '${result?.outputPaths.length ?? 0} files created'
-        : (result?.outputPath != null ? result!.outputPath! : '');
+    if (result == null) return const SizedBox.shrink();
+
+    final List<String> paths = [];
+    if (isSplit) {
+      paths.addAll(result.outputPaths);
+    } else if (result.outputPath != null) {
+      paths.add(result.outputPath!);
+    }
+
+    if (paths.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Text(
+            isSplit
+                ? 'Generated File${paths.length > 1 ? 's (${paths.length})' : ''}'
+                : 'Merged File',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+        ),
+        Expanded(
+          child: ListView.separated(
+            itemCount: paths.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              return _buildFileItem(
+                context,
+                paths[index],
+                isSplit,
+                pdfTheme,
+                colorScheme,
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFileItem(
+    BuildContext context,
+    String path,
+    bool isSplit,
+    PdfThemeExtension pdfTheme,
+    ColorScheme colorScheme,
+  ) {
     return Container(
-      padding: const EdgeInsets.all(AppConstants.spacing24),
+      // padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(AppConstants.borderRadius24),
         border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
       ),
-      child: Row(
-        children: [
-          Container(
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  PdfViewerScreen(path: path, title: p.basename(path)),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius24),
+        child: ListTile(
+          leading: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isSplit
@@ -134,28 +194,18 @@ class SuccessScreen extends StatelessWidget {
               color: isSplit ? pdfTheme.splitPrimary : pdfTheme.mergePrimary,
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                Text(
-                  subtitle.isEmpty
-                      ? (isSplit ? 'Split complete' : 'Merge complete')
-                      : subtitle,
-                  style: const TextStyle(color: Colors.grey),
-                ),
-              ],
-            ),
+          title: Text(
+            p.basename(path),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
-        ],
+          subtitle: const Text(
+            'Tap to view',
+            style: TextStyle(color: Colors.grey, fontSize: 12),
+          ),
+          trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+        ),
       ),
     );
   }
@@ -164,11 +214,11 @@ class SuccessScreen extends StatelessWidget {
     BuildContext context,
     bool isSplit,
     PdfThemeExtension pdfTheme,
+    Size size,
   ) {
     final color = isSplit ? pdfTheme.splitPrimary : pdfTheme.mergePrimary;
     final onSurface = Theme.of(context).colorScheme.onSurface;
     final provider = context.watch<PdfProvider>();
-    final permProv = context.read<PermissionProvider>();
 
     return Column(
       children: [
@@ -180,6 +230,8 @@ class SuccessScreen extends StatelessWidget {
               final path = result.outputPath;
               if (path == null) return;
               if (!context.mounted) return;
+              await Future.delayed(const Duration(milliseconds: 200));
+              if (!context.mounted) return;
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -189,8 +241,73 @@ class SuccessScreen extends StatelessWidget {
               );
               return;
             }
-            if (result.outputPaths.isNotEmpty) {
-              await OpenFilex.open(result.outputPaths.first);
+            if (isSplit) {
+              if (result.outputPaths.isEmpty) return;
+              if (result.outputPaths.length == 1) {
+                final filePath = result.outputPaths.first;
+                if (!context.mounted) return;
+                await Future.delayed(const Duration(milliseconds: 200));
+                if (!context.mounted) return;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PdfViewerScreen(
+                      path: filePath,
+                      title: p.basename(filePath),
+                    ),
+                  ),
+                );
+              } else {
+                if (!context.mounted) return;
+                showModalBottomSheet(
+                  context: context,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                  ),
+                  builder: (ctx) => Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text(
+                          'Select file to view',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: result.outputPaths.length,
+                          itemBuilder: (ctx, idx) {
+                            final filePath = result.outputPaths[idx];
+                            return ListTile(
+                              leading: Icon(Icons.picture_as_pdf, color: color),
+                              title: Text(p.basename(filePath)),
+                              onTap: () {
+                                Navigator.pop(ctx);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => PdfViewerScreen(
+                                      path: filePath,
+                                      title: p.basename(filePath),
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return;
             }
           },
           style: ElevatedButton.styleFrom(
@@ -207,7 +324,7 @@ class SuccessScreen extends StatelessWidget {
               const Icon(Icons.open_in_new),
               const SizedBox(width: 12),
               Text(
-                isSplit ? 'Open Files' : 'Open PDF',
+                'Open PDF',
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -217,115 +334,97 @@ class SuccessScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        OutlinedButton(
-          onPressed: () async {
-            final result = provider.lastResult;
-            if (result == null) return;
-            final status = await permProv.ensureStoragePermission();
-            if (!context.mounted) return;
-            if (!status.isGranted) {
-              if (status.isPermanentlyDenied) {
-                await showDialog<void>(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: const Text('Permission required'),
-                    content: const Text(
-                      'Storage permission is permanently denied. '
-                      'Please enable it in system settings to manage PDFs on this device.',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        child: const Text('Cancel'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () async {
-                          Navigator.pop(ctx);
-                          await openAppSettings();
-                        },
-                        child: const Text('Open Settings'),
-                      ),
-                    ],
-                  ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            OutlinedButton(
+              onPressed: () async {
+                final result = provider.lastResult;
+                if (result == null) return;
+
+                final paths = <String>[];
+                if (!isSplit) {
+                  if (result.outputPath != null) paths.add(result.outputPath!);
+                } else {
+                  paths.addAll(result.outputPaths);
+                }
+                if (paths.isEmpty) return;
+                await SharePlus.instance.share(
+                  ShareParams(files: paths.map((p) => XFile(p)).toList()),
                 );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Storage permission is required to access PDFs on your device.',
+              },
+              style: OutlinedButton.styleFrom(
+                // minimumSize: const Size(double.infinity, 60),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                side: BorderSide(
+                  color: isSplit
+                      ? pdfTheme.splitPrimary.withValues(alpha: 0.2)
+                      : Theme.of(context).colorScheme.outline,
+                ),
+                backgroundColor: isSplit
+                    ? pdfTheme.splitPrimary.withValues(alpha: 0.05)
+                    : null,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.share_outlined, color: onSurface),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Share',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: onSurface,
                     ),
                   ),
-                );
-              }
-              return;
-            }
-            final paths = <String>[];
-            if (!isSplit) {
-              if (result.outputPath != null) paths.add(result.outputPath!);
-            } else {
-              paths.addAll(result.outputPaths);
-            }
-            if (paths.isEmpty) return;
-            await SharePlus.instance.share(
-              ShareParams(files: paths.map((p) => XFile(p)).toList()),
-            );
-          },
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 60),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
+                ],
+              ),
             ),
-            side: BorderSide(
-              color: isSplit
-                  ? pdfTheme.splitPrimary.withValues(alpha: 0.2)
-                  : Theme.of(context).colorScheme.outline,
-            ),
-            backgroundColor: isSplit
-                ? pdfTheme.splitPrimary.withValues(alpha: 0.05)
-                : null,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.share_outlined, color: onSurface),
-              const SizedBox(width: 12),
-              Text(
-                'Share',
+            TextButton.icon(
+              onPressed: () async {
+                final result = provider.lastResult;
+                if (result == null) return;
+                // "Save to device" is platform dependent; we implement as "open in system"
+                // or "share" to a file manager destination.
+                final path = !isSplit
+                    ? result.outputPath
+                    : (result.zipPath ??
+                          (result.outputPaths.isNotEmpty
+                              ? result.outputPaths.first
+                              : null));
+                if (path == null) return;
+                await OpenFilex.open(path);
+              },
+              style: OutlinedButton.styleFrom(
+                // minimumSize: const Size(double.infinity, 60),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                side: BorderSide(
+                  color: isSplit
+                      ? pdfTheme.splitPrimary.withValues(alpha: 0.2)
+                      : Theme.of(context).colorScheme.outline,
+                ),
+                backgroundColor: isSplit
+                    ? pdfTheme.splitPrimary.withValues(alpha: 0.05)
+                    : null,
+              ),
+              icon: Icon(Icons.download_rounded, color: color),
+              label: Text(
+                'Save again',
                 style: TextStyle(
-                  fontSize: 18,
+                  color: color,
                   fontWeight: FontWeight.bold,
-                  color: onSurface,
+                  fontSize: 16,
                 ),
               ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        TextButton.icon(
-          onPressed: () async {
-            final result = provider.lastResult;
-            if (result == null) return;
-            // "Save to device" is platform dependent; we implement as "open in system"
-            // or "share" to a file manager destination.
-            final path = !isSplit
-                ? result.outputPath
-                : (result.zipPath ??
-                      (result.outputPaths.isNotEmpty
-                          ? result.outputPaths.first
-                          : null));
-            if (path == null) return;
-            await OpenFilex.open(path);
-          },
-          icon: Icon(Icons.download_rounded, color: color),
-          label: Text(
-            'Save to Device',
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
             ),
-          ),
+          ],
         ),
+        // const SizedBox(height: 16),
       ],
     );
   }

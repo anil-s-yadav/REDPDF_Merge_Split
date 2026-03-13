@@ -4,6 +4,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../providers/pdf_provider.dart';
 import '../../widgets/premium_avatar.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -13,6 +14,7 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
     final themeProvider = context.watch<ThemeProvider>();
+    final pdfProvider = context.watch<PdfProvider>();
     final pdfTheme = Theme.of(context).extension<PdfThemeExtension>()!;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -65,6 +67,18 @@ class ProfileScreen extends StatelessWidget {
                 trailing: Switch(
                   value: themeProvider.isDarkMode,
                   onChanged: (val) => themeProvider.toggleTheme(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildSettingsItem(
+                context,
+                colorScheme,
+                icon: Icons.visibility_off_outlined,
+                title: 'Show Hidden & Deleted pdf',
+                subtitle: 'Show deleted and hidden pdf files.',
+                trailing: Switch(
+                  value: pdfProvider.showHiddenFiles,
+                  onChanged: (val) => pdfProvider.toggleShowHiddenFiles(),
                 ),
               ),
               const SizedBox(height: 16),

@@ -20,25 +20,29 @@ class _NavigationPageState extends State<NavigationPage> {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: _pages[_currentIndex],
-      bottomNavigationBar: SafeArea(
-        child: NavigationBar(
-          backgroundColor: colorScheme.surfaceContainerLowest,
-          elevation: 10,
-          indicatorColor: Colors.green.shade100,
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (value) {
-            setState(() {
-              _currentIndex = value;
-            });
-          },
-          destinations: [
-            NavigationDestination(icon: Icon(Icons.home), label: "Home"),
-            NavigationDestination(
-              icon: Icon(Icons.settings),
-              label: "Settings",
-            ),
-          ],
-        ),
+      bottomNavigationBar: NavigationBar(
+        backgroundColor: colorScheme.surfaceContainerLowest,
+        elevation: 20,
+        indicatorColor: colorScheme.primary.withAlpha(60),
+        selectedIndex: _currentIndex,
+
+        onDestinationSelected: (value) {
+          setState(() {
+            _currentIndex = value;
+          });
+        },
+
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+        destinations: [
+          NavigationDestination(
+            icon: Icon(Icons.home, color: colorScheme.onSurface),
+            label: "",
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings, color: colorScheme.onSurface),
+            label: "",
+          ),
+        ],
       ),
     );
   }

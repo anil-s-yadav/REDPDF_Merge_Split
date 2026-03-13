@@ -20,8 +20,11 @@ class PdfProvider with ChangeNotifier {
 
   PdfJobResult? _lastResult;
   bool _isProcessing = false;
-  bool _cancelRequested = false;
+  bool _isScanningSystem = false;
+  bool _showHiddenFiles = false;
   String? _error;
+  String? _processingMessage;
+  DateTime _lastNotifyTime = DateTime.fromMillisecondsSinceEpoch(0);
 
   final PdfService _pdfService = PdfService();
   final FileIndexService _fileIndexService = FileIndexService();
@@ -35,11 +38,22 @@ class PdfProvider with ChangeNotifier {
 
   PdfJobResult? get lastResult => _lastResult;
   bool get isProcessing => _isProcessing;
+  bool get isScanningSystem => _isScanningSystem;
+  bool get showHiddenFiles => _showHiddenFiles;
   String? get error => _error;
+  String? get processingMessage => _processingMessage;
 
   Future<void> _init() async {
     await _loadPersisted();
     notifyListeners();
+  }
+
+  void _notifyThrottled() {
+    final now = DateTime.now();
+    if (now.difference(_lastNotifyTime).inMilliseconds >= 300) {
+      _lastNotifyTime = now;
+      notifyListeners();
+    }
   }
 
   Future<void> _loadPersisted() async {
@@ -49,16 +63,25 @@ class PdfProvider with ChangeNotifier {
 
     _history
       ..clear()
-      ..addAll(historyRaw == null ? const [] : PdfJobResult.decodeFileList(historyRaw));
+      ..addAll(
+        historyRaw == null ? const [] : PdfJobResult.decodeFileList(historyRaw),
+      );
     _systemFiles
       ..clear()
-      ..addAll(systemRaw == null ? const [] : PdfJobResult.decodeFileList(systemRaw));
+      ..addAll(
+        systemRaw == null ? const [] : PdfJobResult.decodeFileList(systemRaw),
+      );
+    _showHiddenFiles = prefs.getBool('show_hidden_files') ?? false;
   }
 
   Future<void> _persist() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_prefsHistoryKey, PdfJobResult.encodeList(_history));
-    await prefs.setString(_prefsSystemKey, PdfJobResult.encodeList(_systemFiles));
+    await prefs.setString(
+      _prefsSystemKey,
+      PdfJobResult.encodeList(_systemFiles),
+    );
+    await prefs.setBool('show_hidden_files', _showHiddenFiles);
   }
 
   void addFiles(List<PdfFile> files) {
@@ -92,26 +115,44 @@ class PdfProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> refreshSystemFiles({bool forceRescan = false}) async {
-    _error = null;
+  void toggleShowHiddenFiles() {
+    _showHiddenFiles = !_showHiddenFiles;
+    _persist();
     notifyListeners();
+    refreshSystemFiles(forceRescan: true);
+  }
 
-    if (!forceRescan && _systemFiles.isNotEmpty) return;
+  Future<void> refreshSystemFiles({bool forceRescan = false}) async {
+    if (_isScanningSystem) return;
+    _error = null;
 
+    // If not forced and we already have files, don't scan immediately to avoid UI lag.
+    // However, we still want to scan if the user explicitly asks or if it's the first time.
+    if (_systemFiles.isNotEmpty && !forceRescan) return;
+
+    _isScanningSystem = true;
+    notifyListeners();
     try {
-      final found = await _fileIndexService.indexPdfs();
-      _systemFiles
-        ..clear()
-        ..addAll(found);
+      debugPrint('Refreshing system files... forceRescan: $forceRescan');
+      final found = await _fileIndexService.indexPdfs(
+        showHidden: _showHiddenFiles,
+      );
+      _systemFiles.clear();
+      _systemFiles.addAll(found);
       await _persist();
-      notifyListeners();
     } catch (e) {
-      _error = e.toString();
+      debugPrint('Error refreshing system files: $e');
+    } finally {
+      _isScanningSystem = false;
       notifyListeners();
     }
   }
 
-  Future<void> deleteFile(PdfFile file, {bool fromHistory = false, bool fromSystem = false}) async {
+  Future<void> deleteFile(
+    PdfFile file, {
+    bool fromHistory = false,
+    bool fromSystem = false,
+  }) async {
     final path = file.path;
     if (path != null) {
       try {
@@ -128,24 +169,31 @@ class PdfProvider with ChangeNotifier {
       _history.removeWhere((x) => x.path == file.path && x.name == file.name);
     }
     if (fromSystem) {
-      _systemFiles.removeWhere((x) => x.path == file.path && x.name == file.name);
+      _systemFiles.removeWhere(
+        (x) => x.path == file.path && x.name == file.name,
+      );
     }
     await _persist();
     notifyListeners();
   }
 
   void requestCancel() {
-    _cancelRequested = true;
+    _pdfService.cancel();
     notifyListeners();
   }
 
-  Future<PdfJobResult?> mergeSelected({Map<String, String> passwords = const {}}) async {
+  Future<PdfJobResult?> mergeSelected({
+    Map<String, String> passwords = const {},
+  }) async {
     _error = null;
     _isProcessing = true;
-    _cancelRequested = false;
+    _processingMessage = 'Starting...';
     notifyListeners();
     try {
-      final paths = _selectedFiles.map((e) => e.path).whereType<String>().toList();
+      final paths = _selectedFiles
+          .map((e) => e.path)
+          .whereType<String>()
+          .toList();
       if (paths.length < 2) {
         _error = 'Select at least 2 PDF files.';
         return null;
@@ -154,7 +202,10 @@ class PdfProvider with ChangeNotifier {
       final output = await _pdfService.merge(
         inputPaths: paths,
         passwords: passwords,
-        isCancelled: () => _cancelRequested,
+        onProgress: (msg) {
+          _processingMessage = msg;
+          _notifyThrottled();
+        },
       );
 
       final now = DateFormat('MMM d').format(DateTime.now());
@@ -191,14 +242,17 @@ class PdfProvider with ChangeNotifier {
   }) async {
     _error = null;
     _isProcessing = true;
-    _cancelRequested = false;
+    _processingMessage = 'Starting...';
     notifyListeners();
     try {
       final result = await _pdfService.splitByRanges(
         inputPath: inputPath,
         ranges: ranges,
         password: password,
-        isCancelled: () => _cancelRequested,
+        onProgress: (msg) {
+          _processingMessage = msg;
+          _notifyThrottled();
+        },
       );
 
       final now = DateFormat('MMM d').format(DateTime.now());
@@ -233,4 +287,77 @@ class PdfProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<PdfJobResult?> extract({
+    required String inputPath,
+    required List<int> pages,
+    String? password,
+    String? outputNameSuffix,
+  }) async {
+    _error = null;
+    _isProcessing = true;
+    _processingMessage = 'Starting...';
+    notifyListeners();
+    try {
+      final result = await _pdfService.extractPages(
+        inputPath: inputPath,
+        pages: pages,
+        password: password,
+        outputNameSuffix: outputNameSuffix,
+        onProgress: (msg) {
+          _processingMessage = msg;
+          _notifyThrottled();
+        },
+      );
+
+      final now = DateFormat('MMM d').format(DateTime.now());
+      final size = await _pdfService.humanSize(result.outputPath!);
+
+      _history.insert(
+        0,
+        PdfFile(
+          name: result.outputPath!.split(Platform.pathSeparator).last,
+          date: now,
+          size: size,
+          path: result.outputPath,
+          isMerge: false,
+        ),
+      );
+
+      _lastResult = result;
+      await _persist();
+      return result;
+    } on PdfPasswordRequired catch (e) {
+      _error = 'Password required for ${e.name}';
+      rethrow;
+    } catch (e) {
+      _error = e.toString();
+      return null;
+    } finally {
+      _isProcessing = false;
+      notifyListeners();
+    }
+  }
+
+  Future<int> getSelectedFilesTotalSize() async {
+    int total = 0;
+    for (final file in _selectedFiles) {
+      if (file.path != null) {
+        final f = File(file.path!);
+        if (await f.exists()) {
+          total += await f.length();
+        }
+      }
+    }
+    return total;
+  }
+
+  String formatBytes(int bytes) {
+    const kb = 1024;
+    const mb = 1024 * 1024;
+    if (bytes >= mb) return '${(bytes / mb).toStringAsFixed(1)} MB';
+    if (bytes >= kb) return '${(bytes / kb).toStringAsFixed(1)} KB';
+    return '$bytes B';
+  }
 }
+
