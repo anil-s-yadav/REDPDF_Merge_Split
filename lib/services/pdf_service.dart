@@ -172,46 +172,99 @@ class PdfService {
     }
 
     onProgress?.call('Reading PDF metadata...');
-    final count = await _getPdfPageCount(processPath, password);
+    final count = await _getPdfPageCount(processPath, null);
 
-    final uniquePages =
-        pages.where((pnum) => pnum >= 1 && pnum <= count).toSet().toList()
-          ..sort();
+    // Filter to valid page numbers while preserving the caller-supplied order
+    final orderedPages =
+        pages.where((pnum) => pnum >= 1 && pnum <= count).toList();
 
-    if (uniquePages.isEmpty) {
+    if (orderedPages.isEmpty) {
       throw ArgumentError('No valid pages specified for extraction.');
-    }
-
-    List<int> pagesToDelete = [];
-    for (int i = 1; i <= count; i++) {
-      if (!uniquePages.contains(i)) {
-        pagesToDelete.add(i);
-      }
-    }
-
-    String finalPathOutput;
-    if (pagesToDelete.isEmpty) {
-      // all pages kept, just copy
-      finalPathOutput = processPath;
-    } else {
-      onProgress?.call('Extracting pages natively...');
-      final tempPath = await PdfManipulator().pdfPageDeleter(
-        params: PDFPageDeleterParams(
-          pdfPath: processPath,
-          pageNumbers: pagesToDelete,
-        ),
-      );
-      if (tempPath == null) {
-        throw CancellationException();
-      }
-      finalPathOutput = tempPath;
     }
 
     final suffix = outputNameSuffix ?? 'extracted';
     final outPath = p.join(outDir.path, '${inputName}_$suffix.pdf');
 
-    onProgress?.call('Saving extracted PDF...');
-    await File(finalPathOutput).copy(outPath);
+    // Check whether the order matches the natural sorted order.
+    final sortedUnique = orderedPages.toSet().toList()..sort();
+    final isSortedNoDups =
+        orderedPages.length == sortedUnique.length &&
+        List.generate(orderedPages.length, (i) => orderedPages[i] == sortedUnique[i])
+            .every((v) => v);
+
+    if (isSortedNoDups) {
+      // Fast path: use native pdfPageDeleter (preserves original order)
+      List<int> pagesToDelete = [];
+      for (int i = 1; i <= count; i++) {
+        if (!sortedUnique.contains(i)) {
+          pagesToDelete.add(i);
+        }
+      }
+
+      String finalPathOutput;
+      if (pagesToDelete.isEmpty) {
+        finalPathOutput = processPath;
+      } else {
+        onProgress?.call('Extracting pages natively...');
+        final tempPath = await PdfManipulator().pdfPageDeleter(
+          params: PDFPageDeleterParams(
+            pdfPath: processPath,
+            pageNumbers: pagesToDelete,
+          ),
+        );
+        if (tempPath == null) throw CancellationException();
+        finalPathOutput = tempPath;
+      }
+
+      onProgress?.call('Saving extracted PDF...');
+      await File(finalPathOutput).copy(outPath);
+    } else {
+      // Ordered / rearranged path: build output PDF page-by-page using Syncfusion
+      onProgress?.call('Rearranging pages...');
+      final srcBytes = await File(processPath).readAsBytes();
+      final srcDoc = PdfDocument(inputBytes: srcBytes);
+      // New PdfDocument starts with one blank default page — we remove it
+      // by building via PdfPageSettings when adding each page.
+      final outDoc = PdfDocument();
+      // Remove the default blank page that PdfDocument creates
+      bool firstPage = true;
+
+      for (int i = 0; i < orderedPages.length; i++) {
+        final pageIdx = orderedPages[i] - 1; // 0-based
+        if (pageIdx < 0 || pageIdx >= srcDoc.pages.count) continue;
+        onProgress?.call('Copying page ${i + 1} of ${orderedPages.length}...');
+        final srcPage = srcDoc.pages[pageIdx];
+        final pageSize = srcPage.size;
+        // Add a page with matching size
+        final PdfPage destPage;
+        if (firstPage) {
+          firstPage = false;
+          // Use the first page (default blank) and set page settings
+          outDoc.pageSettings.size = pageSize;
+          outDoc.pageSettings.margins.all = 0;
+          destPage = outDoc.pages.add();
+          // Remove the auto-created blank page (index 0) — actually
+          // PdfDocument doesn't add a blank page until we call add().
+          // So just use destPage directly.
+        } else {
+          outDoc.pageSettings.size = pageSize;
+          destPage = outDoc.pages.add();
+        }
+        // Copy graphics/content via template
+        final template = srcPage.createTemplate();
+        destPage.graphics.drawPdfTemplate(
+          template,
+          Offset.zero,
+        );
+      }
+
+      onProgress?.call('Saving reordered PDF...');
+      final outBytes = await outDoc.save();
+      outDoc.dispose();
+      srcDoc.dispose();
+      await File(outPath).writeAsBytes(outBytes);
+    }
+
     await PlatformService.scanFiles([outPath]);
 
     return PdfJobResult(
