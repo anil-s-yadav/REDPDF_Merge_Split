@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
+import 'package:pdfx/pdfx.dart' as pdfx;
 
 import '../../core/theme/pdf_theme_extension.dart';
 import '../../models/pdf_models.dart';
@@ -27,6 +29,10 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
   String? _inputName;
   int? _pageCount;
   String? _pdfPassword; // remembered password for locked PDFs
+
+  pdfx.PdfDocument? _pdfDocument;
+  final Map<int, Uint8List> _thumbnails = {};
+  bool _isLoadingThumbnails = false;
 
   _SplitMode _mode = _SplitMode.extract;
 
@@ -70,6 +76,7 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
     _extractController.dispose();
     _deleteController.removeListener(_onDeleteTextChanged);
     _deleteController.dispose();
+    _pdfDocument?.close();
     super.dispose();
   }
 
@@ -91,6 +98,10 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
       _extractOrderedPages = [];
       _extractSelected.clear();
       _deleteSelected.clear();
+      _pdfDocument?.close();
+      _pdfDocument = null;
+      _thumbnails.clear();
+      _isLoadingThumbnails = false;
     });
     await _loadPageCount();
   }
@@ -106,79 +117,87 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
           : PdfDocument(inputBytes: bytes, password: password);
       final count = doc.pages.count;
       doc.dispose();
+      
+      try {
+        _pdfDocument?.close();
+        _pdfDocument = password == null 
+            ? await pdfx.PdfDocument.openFile(path)
+            : await pdfx.PdfDocument.openFile(path, password: password);
+      } catch (_) {
+        // ignore pdfx errors, we still have _pageCount
+      }
+
       if (!mounted) return;
       setState(() {
         _pageCount = count;
         if (password != null) _pdfPassword = password;
       });
+      _generateThumbnails();
       // Sync text fields with valid ranges
       _onExtractTextChanged();
       _onDeleteTextChanged();
     } catch (e) {
       if (!mounted) return;
-      final msg = e.toString().toLowerCase();
-      if ((msg.contains('password') || msg.contains('encrypted')) &&
-          password == null) {
-        await _askPasswordThenLoad();
+      final message = e.toString().toLowerCase();
+      final looksLocked =
+          message.contains('password') || message.contains('encrypted');
+      if (looksLocked && password == null) {
+        final controller = TextEditingController();
+        final pwd = await showDialog<String>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Row(
+              children: [
+                Icon(Icons.lock_outline, color: Colors.orange),
+                SizedBox(width: 8),
+                Text('Password Required'),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'This PDF is locked. Enter the password to open it.',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: controller,
+                  obscureText: true,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    labelText: 'PDF Password',
+                    prefixIcon: Icon(Icons.key_outlined),
+                    border: OutlineInputBorder(),
+                  ),
+                  onSubmitted: (v) => Navigator.pop(ctx, v),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton.icon(
+                onPressed: () => Navigator.pop(ctx, controller.text),
+                icon: const Icon(Icons.lock_open, size: 18),
+                label: const Text('Unlock'),
+              ),
+            ],
+          ),
+        );
+        if (pwd != null && pwd.isNotEmpty && mounted) {
+          await _loadPageCount(password: pwd);
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Could not read PDF: $e')),
         );
       }
-    }
-  }
-
-  Future<void> _askPasswordThenLoad() async {
-    if (!mounted) return;
-    final ctrl = TextEditingController();
-    final pwd = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.lock_outline, color: Colors.orange),
-            SizedBox(width: 8),
-            Text('Password Required'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'This PDF is locked. Enter the password to open it.',
-              style: TextStyle(color: Colors.grey[600], fontSize: 13),
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: ctrl,
-              obscureText: true,
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'PDF Password',
-                prefixIcon: Icon(Icons.key_outlined),
-                border: OutlineInputBorder(),
-              ),
-              onSubmitted: (v) => Navigator.pop(ctx, v),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.pop(ctx, ctrl.text),
-            icon: const Icon(Icons.lock_open, size: 18),
-            label: const Text('Unlock'),
-          ),
-        ],
-      ),
-    );
-    if (pwd != null && pwd.isNotEmpty && mounted) {
-      await _loadPageCount(password: pwd);
     }
   }
 
@@ -300,7 +319,7 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
             inputPath: path,
             pages: surviving,
             password: _pdfPassword,
-            suffix: 'edited',
+            suffix: 'deleted_${_deleteSelected.length}_pages',
           ),
         ),
       );
@@ -425,6 +444,10 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
                         _extractOrderedPages = [];
                         _extractSelected.clear();
                         _deleteSelected.clear();
+                        _pdfDocument?.close();
+                        _pdfDocument = null;
+                        _thumbnails.clear();
+                        _isLoadingThumbnails = false;
                       });
                     },
               child: const Text('Reselect'),
@@ -779,45 +802,45 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
                         ),
                       ],
                     ),
-                    child: isSelected
-                        ? Center(
-                            child: Icon(
-                              selectedIcon ?? Icons.check_circle_rounded,
-                              color: selColor,
-                              size: 28,
-                            ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      fit: StackFit.expand,
+                      children: [
+                        if (_thumbnails[pageNum] != null)
+                          Image.memory(
+                            _thumbnails[pageNum]!,
+                            fit: BoxFit.cover,
                           )
-                        : Padding(
-                            padding: const EdgeInsets.all(4),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.article_outlined,
-                                  color: Colors.grey[400],
-                                  size: 22,
-                                ),
-                                const SizedBox(height: 2),
-                                Container(
-                                  height: 2,
-                                  width: 20,
-                                  color: Colors.grey[300],
-                                ),
-                                const SizedBox(height: 2),
-                                Container(
-                                  height: 2,
-                                  width: 16,
-                                  color: Colors.grey[300],
-                                ),
-                                const SizedBox(height: 2),
-                                Container(
-                                  height: 2,
-                                  width: 18,
-                                  color: Colors.grey[300],
-                                ),
-                              ],
+                        else
+                          Center(
+                            child: _isLoadingThumbnails
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Icon(
+                                    Icons.article_outlined,
+                                    color: Colors.grey[300],
+                                    size: 32,
+                                  ),
+                          ),
+                        if (isSelected)
+                          Container(
+                            color: selColor.withValues(alpha: 0.3),
+                            child: Center(
+                              child: Icon(
+                                selectedIcon ?? Icons.check_circle_rounded,
+                                color: Colors.white,
+                                size: 28,
+                              ),
                             ),
                           ),
+                      ],
+                    ),
                   ),
                 ),
                 // Page number label
@@ -1069,7 +1092,36 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
     );
   }
 
-  // ─── range header ──────────────────────────────────────────────────────────
+  Future<void> _generateThumbnails() async {
+    if (_pdfDocument == null || _pageCount == null || _pageCount! <= 0) return;
+    setState(() => _isLoadingThumbnails = true);
+    for (var i = 1; i <= _pageCount!; i++) {
+      if (!mounted) break;
+      try {
+        final page = await _pdfDocument!.getPage(i);
+       
+        // We render at a small resolution
+        final renderResult = await page.render(
+          width: page.width / 4, // Intentionally double
+          height: page.height / 4, // Intentionally double
+          format: pdfx.PdfPageImageFormat.jpeg,
+        );
+        
+        if (renderResult != null && mounted) {
+          setState(() {
+            _thumbnails[i] = renderResult.bytes;
+          });
+        }
+        await page.close();
+      } catch (_) {
+        // ignore individual page render errors
+      }
+    }
+    if (mounted) setState(() => _isLoadingThumbnails = false);
+  }
+
+  // ─── parsing helpers ──────────────────────────────────────────────────────────
+    // ─── range header ──────────────────────────────────────────────────────────
   Widget _buildRangeHeader(PdfThemeExtension pdfTheme, bool disabled) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

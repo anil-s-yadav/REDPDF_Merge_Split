@@ -26,6 +26,7 @@ dependencies:
   device_info_plus: ^11.5.0
   pdf_manipulator:
     path: packages/pdf_manipulator
+  pdfx: ^2.9.2
 
 dev_dependencies:
   flutter_test:

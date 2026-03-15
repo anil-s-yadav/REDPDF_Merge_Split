@@ -21,9 +21,13 @@ class PdfService {
     void Function(String)? onProgress,
   }) async {
     final outDir = await _ensureOutputDir();
+    final name1 = p.basenameWithoutExtension(inputPaths[0]);
+    final name2 = inputPaths.length > 1
+        ? p.basenameWithoutExtension(inputPaths[1])
+        : '';
     final outPath = p.join(
       outDir.path,
-      'merged_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      'merged_${name1}${name2.isNotEmpty ? '_$name2' : ''}.pdf',
     );
 
     onProgress?.call("Preparing files...");
@@ -128,10 +132,20 @@ class PdfService {
     List<String> outputs = [];
     for (int i = 0; i < tempPaths.length; i++) {
       final range = uniqueRanges[i];
-      final String rangeStr = range.from == range.to
-          ? 'page_${range.from}'
-          : 'pages_${range.from}-${range.to}';
-      final outPath = p.join(outDir.path, '${inputName}_$rangeStr.pdf');
+      final isSinglePage = range.from == range.to;
+      final int pagesInThisRange = range.to - range.from + 1;
+      
+      String outPath;
+      if (isSinglePage) {
+        outPath = p.join(outDir.path, '${inputName}_page_${range.from}.pdf');
+      } else {
+        // Fallback suffix if there's conflict
+        final uniqueSuffix = uniqueRanges.length > 1 ? '_part_${i + 1}' : '';
+        outPath = p.join(
+          outDir.path, 
+          'Split_${pagesInThisRange}_pages_$inputName$uniqueSuffix.pdf'
+        );
+      }
 
       await File(tempPaths[i]).copy(outPath);
       outputs.add(outPath);
@@ -182,8 +196,9 @@ class PdfService {
       throw ArgumentError('No valid pages specified for extraction.');
     }
 
-    final suffix = outputNameSuffix ?? 'extracted';
-    final outPath = p.join(outDir.path, '${inputName}_$suffix.pdf');
+    final outPath = outputNameSuffix != null
+        ? p.join(outDir.path, '${inputName}_$outputNameSuffix.pdf')
+        : p.join(outDir.path, 'Split_${orderedPages.length}_pages_$inputName.pdf');
 
     // Check whether the order matches the natural sorted order.
     final sortedUnique = orderedPages.toSet().toList()..sort();

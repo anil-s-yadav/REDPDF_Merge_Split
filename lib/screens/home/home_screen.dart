@@ -148,14 +148,14 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ],
         ),
-        GestureDetector(
-          onTap: () => Navigator.pushNamed(context, '/upgrade'),
-          child: PremiumAvatar(
-            imageUrl: 'https://ui-avatars.com/api/?name=User',
-            isPremium: user.isPremium,
-            // size: 50,
-          ),
-        ),
+        // GestureDetector(
+        //   onTap: () => Navigator.pushNamed(context, '/upgrade'),
+        //   child: PremiumAvatar(
+        //     imageUrl: 'https://ui-avatars.com/api/?name=User',
+        //     isPremium: user.isPremium,
+        //     // size: 50,
+        //   ),
+        // ),
       ],
     );
   }
