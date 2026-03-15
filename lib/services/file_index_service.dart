@@ -14,7 +14,7 @@ class FileIndexService {
 
     if (Platform.isAndroid) {
       debugPrint('Starting optimized PDF scan...');
-      
+
       final commonFolders = [
         '/storage/emulated/0/Download',
         '/storage/emulated/0/Documents',
@@ -46,13 +46,18 @@ class FileIndexService {
         for (final entity in entities) {
           if (entity is File) {
             final path = entity.path;
-            if (p.extension(path).toLowerCase() == '.pdf' && !seen.contains(path)) {
+            if (p.extension(path).toLowerCase() == '.pdf' &&
+                !seen.contains(path)) {
               await _addPdfFile(entity, results, seen);
             }
           } else if (entity is Directory) {
             final name = p.basename(entity.path);
             // Skip huge media folders to avoid hanging
-            if (name == 'DCIM' || name == 'Pictures' || name == 'Movies' || name == 'Music') continue;
+            if (name == 'DCIM' ||
+                name == 'Pictures' ||
+                name == 'Movies' ||
+                name == 'Music')
+              continue;
             if (!showHidden) {
               if (name.startsWith('.') ||
                   name == 'Android' ||
@@ -84,7 +89,8 @@ class FileIndexService {
         roots.add(docs);
       } catch (_) {}
 
-      if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      if (!kIsWeb &&
+          (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
         final downloads = await getDownloadsDirectory();
         if (downloads != null) roots.add(downloads);
       }
@@ -104,7 +110,9 @@ class FileIndexService {
       }
     }
 
-    results.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    results.sort(
+      (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+    );
     return results;
   }
 
@@ -152,8 +160,10 @@ class FileIndexService {
   }) async {
     try {
       // Use lister to get files in this directory
-      final entities = await dir.list(recursive: false, followLinks: false).toList();
-      
+      final entities = await dir
+          .list(recursive: false, followLinks: false)
+          .toList();
+
       for (final entity in entities) {
         try {
           if (entity is File) {
@@ -203,6 +213,3 @@ class FileIndexService {
     return '$bytes B';
   }
 }
-
-
-

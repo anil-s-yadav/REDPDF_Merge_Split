@@ -18,22 +18,22 @@ class PdfFile {
   });
 
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'date': date,
-        'size': size,
-        'path': path,
-        'pages': pages,
-        'isMerge': isMerge,
-      };
+    'name': name,
+    'date': date,
+    'size': size,
+    'path': path,
+    'pages': pages,
+    'isMerge': isMerge,
+  };
 
   static PdfFile fromJson(Map<String, dynamic> json) => PdfFile(
-        name: (json['name'] as String?) ?? 'Unknown.pdf',
-        date: (json['date'] as String?) ?? '',
-        size: (json['size'] as String?) ?? '',
-        path: json['path'] as String?,
-        pages: json['pages'] as int?,
-        isMerge: (json['isMerge'] as bool?) ?? true,
-      );
+    name: (json['name'] as String?) ?? 'Unknown.pdf',
+    date: (json['date'] as String?) ?? '',
+    size: (json['size'] as String?) ?? '',
+    path: json['path'] as String?,
+    pages: json['pages'] as int?,
+    isMerge: (json['isMerge'] as bool?) ?? true,
+  );
 }
 
 class PdfJobResult {
@@ -52,22 +52,22 @@ class PdfJobResult {
   });
 
   Map<String, dynamic> toJson() => {
-        'isSplit': isSplit,
-        'inputPath': inputPath,
-        'outputPath': outputPath,
-        'outputPaths': outputPaths,
-        'zipPath': zipPath,
-      };
+    'isSplit': isSplit,
+    'inputPath': inputPath,
+    'outputPath': outputPath,
+    'outputPaths': outputPaths,
+    'zipPath': zipPath,
+  };
 
   static PdfJobResult fromJson(Map<String, dynamic> json) => PdfJobResult(
-        isSplit: (json['isSplit'] as bool?) ?? false,
-        inputPath: json['inputPath'] as String?,
-        outputPath: json['outputPath'] as String?,
-        outputPaths: ((json['outputPaths'] as List?) ?? const [])
-            .whereType<String>()
-            .toList(),
-        zipPath: json['zipPath'] as String?,
-      );
+    isSplit: (json['isSplit'] as bool?) ?? false,
+    inputPath: json['inputPath'] as String?,
+    outputPath: json['outputPath'] as String?,
+    outputPaths: ((json['outputPaths'] as List?) ?? const [])
+        .whereType<String>()
+        .toList(),
+    zipPath: json['zipPath'] as String?,
+  );
 
   static String encodeList(List<PdfFile> files) =>
       jsonEncode(files.map((e) => e.toJson()).toList());
@@ -91,7 +91,6 @@ class PdfPasswordRequired implements Exception {
   @override
   String toString() => 'PdfPasswordRequired(name: $name, path: $path)';
 }
-
 
 class PageRange {
   final int from; // 1-based inclusive

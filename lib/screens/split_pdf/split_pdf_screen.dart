@@ -211,11 +211,11 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
       } else {
         final effectiveRanges =
             _mode == _SplitMode.everyPage && _pageCount != null
-                ? List<PageRange>.generate(
-                    _pageCount!,
-                    (i) => PageRange(i + 1, i + 1),
-                  )
-                : ranges;
+            ? List<PageRange>.generate(
+                _pageCount!,
+                (i) => PageRange(i + 1, i + 1),
+              )
+            : ranges;
 
         if (!mounted) return;
         await Navigator.push(

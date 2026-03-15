@@ -29,4 +29,3 @@ class PermissionService {
     return await Permission.storage.request();
   }
 }
-

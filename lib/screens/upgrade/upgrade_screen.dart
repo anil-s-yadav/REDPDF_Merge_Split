@@ -20,7 +20,10 @@ class UpgradeScreen extends StatelessWidget {
           gradient: RadialGradient(
             center: const Alignment(0, -0.5),
             radius: 1.2,
-            colors: [pdfTheme.gold.withValues(alpha: 0.15), colorScheme.surface],
+            colors: [
+              pdfTheme.gold.withValues(alpha: 0.15),
+              colorScheme.surface,
+            ],
           ),
         ),
         child: SafeArea(
@@ -208,7 +211,9 @@ class UpgradeScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: colorScheme.surface,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: colorScheme.outline.withValues(alpha: 0.3),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

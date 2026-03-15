@@ -265,7 +265,8 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          provider.processingMessage ?? 'Please wait while we process your file...',
+                          provider.processingMessage ??
+                              'Please wait while we process your file...',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: colorScheme.onSurface.withValues(alpha: 0.6),
