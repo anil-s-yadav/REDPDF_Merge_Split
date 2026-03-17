@@ -360,4 +360,3 @@ class PdfProvider with ChangeNotifier {
     return '$bytes B';
   }
 }
-

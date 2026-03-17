@@ -33,29 +33,29 @@ class ProfileScreen extends StatelessWidget {
           ),
           child: Column(
             children: [
-              const SizedBox(height: 16),
-              ListTile(
-                leading: PremiumAvatar(
-                  imageUrl: 'https://ui-avatars.com/api/?name=User',
-                  isPremium: userProvider.isPremium,
-                ),
-                title: Text(
-                  userProvider.name,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: Text(
-                  userProvider.email,
-                  style: TextStyle(
-                    color: colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                ),
-              ),
+              // const SizedBox(height: 16),
+              // ListTile(
+              //   leading: PremiumAvatar(
+              //     imageUrl: 'https://ui-avatars.com/api/?name=User',
+              //     isPremium: userProvider.isPremium,
+              //   ),
+              //   title: Text(
+              //     userProvider.name,
+              //     style: const TextStyle(
+              //       fontSize: 24,
+              //       fontWeight: FontWeight.bold,
+              //     ),
+              //   ),
+              //   subtitle: Text(
+              //     userProvider.email,
+              //     style: TextStyle(
+              //       color: colorScheme.onSurface.withValues(alpha: 0.6),
+              //     ),
+              //   ),
+              // ),
 
-              const SizedBox(height: 35),
-              _buildUpgradeCard(pdfTheme),
+              // const SizedBox(height: 35),
+              // _buildUpgradeCard(pdfTheme),
               const SizedBox(height: 30),
               _buildSettingsItem(
                 context,
@@ -128,18 +128,18 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 16),
 
               // const SizedBox(height: 40),
-              TextButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.logout, color: Colors.red),
-                label: const Text(
-                  'Logout',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 40),
+              // TextButton.icon(
+              //   onPressed: () {},
+              //   icon: const Icon(Icons.logout, color: Colors.red),
+              //   label: const Text(
+              //     'Logout',
+              //     style: TextStyle(
+              //       color: Colors.red,
+              //       fontWeight: FontWeight.bold,
+              //     ),
+              //   ),
+              // ),
+              // const SizedBox(height: 40),
             ],
           ),
         ),

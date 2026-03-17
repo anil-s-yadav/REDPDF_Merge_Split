@@ -53,24 +53,26 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
     });
   }
 
-  Future<void> _runTask() async {
+  Future<void> _runTask({Map<String, String>? extraPasswords, String? retryPassword}) async {
     final provider = context.read<PdfProvider>();
     PdfJobResult? result;
 
     try {
       if (widget.type == ProcessingJobType.merge) {
-        result = await provider.mergeSelected(passwords: widget.passwords);
+        result = await provider.mergeSelected(
+          passwords: extraPasswords ?? widget.passwords,
+        );
       } else if (widget.type == ProcessingJobType.split) {
         result = await provider.split(
           inputPath: widget.inputPath!,
           ranges: widget.ranges!,
-          password: widget.password,
+          password: retryPassword ?? widget.password,
         );
       } else if (widget.type == ProcessingJobType.extract) {
         result = await provider.extract(
           inputPath: widget.inputPath!,
           pages: widget.pages!,
-          password: widget.password,
+          password: retryPassword ?? widget.password,
           outputNameSuffix: widget.suffix,
         );
       }
@@ -86,16 +88,78 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
           ),
         );
       } else if (provider.error != null) {
-        // If it was cancelled, provider.error might be "Processing was cancelled"
-        // We handle cancellation by going back, which is handled by WillPopScope/Back button
         if (provider.error!.contains('cancelled')) {
-          // Handled by pop
+          // Cancelled — handled by back button
         } else {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(provider.error!)));
           Navigator.pop(context);
         }
+      }
+    } on PdfPasswordRequired catch (e) {
+      if (!mounted) return;
+      final ctrl = TextEditingController();
+      final pwd = await showDialog<String>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.lock_outline, color: Colors.orange),
+              SizedBox(width: 8),
+              Text('Password Required'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'The file "${e.name}" is password-protected.\nEnter the password to continue processing.',
+                style: TextStyle(color: Colors.grey[600], fontSize: 13),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: ctrl,
+                obscureText: true,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'PDF Password',
+                  prefixIcon: Icon(Icons.key_outlined),
+                  border: OutlineInputBorder(),
+                ),
+                onSubmitted: (v) => Navigator.pop(ctx, v),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                if (mounted) Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () => Navigator.pop(ctx, ctrl.text),
+              icon: const Icon(Icons.lock_open, size: 18),
+              label: const Text('Unlock & Retry'),
+            ),
+          ],
+        ),
+      );
+      if (!mounted || pwd == null || pwd.isEmpty) return;
+
+      if (widget.type == ProcessingJobType.merge) {
+        final newPasswords = Map<String, String>.from(
+          extraPasswords ?? widget.passwords,
+        );
+        newPasswords[e.path] = pwd;
+        await _runTask(extraPasswords: newPasswords);
+      } else {
+        await _runTask(retryPassword: pwd);
       }
     } catch (e) {
       if (!mounted) return;
@@ -265,7 +329,8 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          provider.processingMessage ?? 'Please wait while we process your file...',
+                          provider.processingMessage ??
+                              'Please wait while we process your file...',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: colorScheme.onSurface.withValues(alpha: 0.6),

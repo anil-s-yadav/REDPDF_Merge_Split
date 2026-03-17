@@ -6,12 +6,18 @@ import '../../core/theme/pdf_theme_extension.dart';
 import '../../providers/pdf_provider.dart';
 import '../../models/pdf_models.dart';
 import '../processing/processing_screen.dart';
-// import 'package:permission_handler/permission_handler.dart';
 
-class SelectPdfScreen extends StatelessWidget {
+class SelectPdfScreen extends StatefulWidget {
   const SelectPdfScreen({super.key});
 
-  Future<void> _pickFiles(BuildContext context, PdfProvider provider) async {
+  @override
+  State<SelectPdfScreen> createState() => _SelectPdfScreenState();
+}
+
+class _SelectPdfScreenState extends State<SelectPdfScreen> {
+  final Map<String, String> _passwords = {};
+
+  Future<void> _pickFiles(PdfProvider provider) async {
     // final permissionProvider = context.read<PermissionProvider>();
     // final status = await permissionProvider.ensureStoragePermission();
     // if (!context.mounted) return;
@@ -36,7 +42,7 @@ class SelectPdfScreen extends StatelessWidget {
       allowMultiple: true,
     );
 
-    if (result != null) {
+    if (result != null && mounted) {
       final List<PdfFile> files = result.files.map((file) {
         return PdfFile(
           name: file.name,
@@ -49,70 +55,24 @@ class SelectPdfScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _merge(
-    BuildContext context,
-    PdfProvider provider, {
-    Map<String, String> passwords = const {},
-  }) async {
+  Future<void> _merge(PdfProvider provider) async {
     final bytes = await provider.getSelectedFilesTotalSize();
     final sizeStr = provider.formatBytes((bytes * 0.98).toInt());
     final isLarge = bytes > 2 * 1024 * 1024; // > 2MB
 
-    if (!context.mounted) return;
+    if (!mounted) return;
 
-    try {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ProcessingScreen(
-            type: ProcessingJobType.merge,
-            estimatedSize: sizeStr,
-            isLarge: isLarge,
-            passwords: passwords,
-          ),
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProcessingScreen(
+          type: ProcessingJobType.merge,
+          estimatedSize: sizeStr,
+          isLarge: isLarge,
+          passwords: _passwords,
         ),
-      );
-
-      // Password handling is usually initiated inside provider.mergeSelected,
-      // but here we might need to catch it if retry is needed.
-      // However, ProcessingScreen runs the task. If it throws password required,
-      // we need to handle it.
-    } on PdfPasswordRequired catch (e) {
-      if (!context.mounted) return;
-      final controller = TextEditingController();
-      final pwd = await showDialog<String>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text('Password required'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Enter password for ${e.name}'),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controller,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Password'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, controller.text),
-              child: const Text('Continue'),
-            ),
-          ],
-        ),
-      );
-      if (pwd == null || pwd.isEmpty) return;
-      if (!context.mounted) return;
-      await _merge(context, provider, passwords: {e.path: pwd});
-    }
+      ),
+    );
   }
 
   // Future<void> _showPermissionSettingsDialog(BuildContext context) async {
@@ -160,9 +120,17 @@ class SelectPdfScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          SizedBox(height: size.height * 0.03),
-          _buildAddFilesContainer(context, pdfTheme, pdfProvider, size),
-          SizedBox(height: size.height * 0.04),
+          // SizedBox(height: size.height * 0.03),
+          // _buildAddFilesContainer(context, pdfTheme, pdfProvider, size),
+          // SizedBox(height: size.height * 0.04),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Text(
+              "For smooth experience, unlock your locked PDFs before adding them.",
+              style: TextStyle(color: Colors.grey[600], fontSize: 13),
+            ),
+          ),
+          SizedBox(height: size.height * 0.02),
           _buildSelectedFilesHeader(
             colorScheme,
             pdfTheme,
@@ -177,6 +145,7 @@ class SelectPdfScreen extends StatelessWidget {
                 colorScheme,
                 textTheme,
                 pdfProvider,
+                pdfTheme,
               ),
             ),
           ),
@@ -186,67 +155,65 @@ class SelectPdfScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAddFilesContainer(
-    BuildContext context,
-    PdfThemeExtension pdfTheme,
-    PdfProvider provider,
-    Size size,
-  ) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: size.width * 0.06),
-      child: InkWell(
-        onTap: provider.isProcessing
-            ? null
-            : () => _pickFiles(context, provider),
-        borderRadius: BorderRadius.circular(AppConstants.borderRadius20),
-        child: Container(
-          padding: const EdgeInsets.all(AppConstants.spacing24),
-          decoration: BoxDecoration(
-            color: pdfTheme.mergeContainer,
-            borderRadius: BorderRadius.circular(AppConstants.borderRadius20),
-            border: Border.all(
-              color: pdfTheme.mergePrimary.withValues(alpha: 0.2),
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: pdfTheme.mergePrimary,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.add, color: Colors.white, size: 24),
-              ),
-              const SizedBox(width: AppConstants.spacing16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Add more PDF files',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: pdfTheme.mergePrimary.withValues(
-                          alpha: 0.8,
-                        ), // Use themed primary
-                      ),
-                    ),
-                    const Text(
-                      'Select from your device storage',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.chevron_right, color: Colors.grey),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildAddFilesContainer(
+  //   BuildContext context,
+  //   PdfThemeExtension pdfTheme,
+  //   PdfProvider provider,
+  //   Size size,
+  // ) {
+  //   return Padding(
+  //     padding: EdgeInsets.symmetric(horizontal: size.width * 0.06),
+  //     child: InkWell(
+  //       onTap: provider.isProcessing ? null : () => _pickFiles(provider),
+  //       borderRadius: BorderRadius.circular(AppConstants.borderRadius20),
+  //       child: Container(
+  //         padding: const EdgeInsets.all(AppConstants.spacing24),
+  //         decoration: BoxDecoration(
+  //           color: pdfTheme.mergeContainer,
+  //           borderRadius: BorderRadius.circular(AppConstants.borderRadius20),
+  //           border: Border.all(
+  //             color: pdfTheme.mergePrimary.withValues(alpha: 0.2),
+  //           ),
+  //         ),
+  //         child: Row(
+  //           children: [
+  //             Container(
+  //               padding: const EdgeInsets.all(12),
+  //               decoration: BoxDecoration(
+  //                 color: pdfTheme.mergePrimary,
+  //                 shape: BoxShape.circle,
+  //               ),
+  //               child: const Icon(Icons.add, color: Colors.white, size: 24),
+  //             ),
+  //             const SizedBox(width: AppConstants.spacing16),
+  //             Expanded(
+  //               child: Column(
+  //                 crossAxisAlignment: CrossAxisAlignment.start,
+  //                 children: [
+  //                   Text(
+  //                     'Add more PDF files',
+  //                     style: TextStyle(
+  //                       fontWeight: FontWeight.bold,
+  //                       fontSize: 16,
+  //                       color: pdfTheme.mergePrimary.withValues(
+  //                         alpha: 0.8,
+  //                       ), // Use themed primary
+  //                     ),
+  //                   ),
+  //                   const Text(
+  //                     'Select from your device storage',
+  //                     style: TextStyle(color: Colors.grey),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+  //             const Icon(Icons.chevron_right, color: Colors.grey),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildSelectedFilesHeader(
     ColorScheme colorScheme,
@@ -292,6 +259,7 @@ class SelectPdfScreen extends StatelessWidget {
     ColorScheme colorScheme,
     TextTheme textTheme,
     PdfProvider provider,
+    PdfThemeExtension pdfTheme,
   ) {
     final files = provider.selectedFiles;
 
@@ -312,9 +280,9 @@ class SelectPdfScreen extends StatelessWidget {
             key: const ValueKey('__add_more__'),
             padding: const EdgeInsets.only(top: AppConstants.spacing16),
             child: InkWell(
-              onTap: () => _pickFiles(context, provider),
+              onTap: () => _pickFiles(provider),
               borderRadius: BorderRadius.circular(30),
-              child: _buildDashContainer(colorScheme),
+              child: _buildDashContainer(colorScheme, pdfTheme),
             ),
           );
         }
@@ -374,20 +342,35 @@ class SelectPdfScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDashContainer(ColorScheme colorScheme) {
+  Widget _buildDashContainer(
+    ColorScheme colorScheme,
+    PdfThemeExtension pdfTheme,
+  ) {
     return Container(
       height: 60,
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
+        // color: colorScheme.surface,
+        // borderRadius: BorderRadius.circular(30),
+        // border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
+        color: pdfTheme.mergeContainer,
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius20),
+        border: Border.all(color: pdfTheme.mergePrimary.withValues(alpha: 0.2)),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.add_circle_outline, color: Colors.grey, size: 20),
-          SizedBox(width: 8),
-          Text('Tap to add more', style: TextStyle(color: Colors.grey)),
+          Icon(
+            Icons.add_circle_outline,
+            color: pdfTheme.mergePrimary.withValues(alpha: 0.8),
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Tap to select PDFs',
+            style: TextStyle(
+              color: pdfTheme.mergePrimary.withValues(alpha: 0.8),
+            ),
+          ),
         ],
       ),
     );
@@ -415,7 +398,7 @@ class SelectPdfScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: canProcess
                 ? () async {
-                    await _merge(context, provider);
+                    await _merge(provider);
                   }
                 : null,
             style: ElevatedButton.styleFrom(
