@@ -874,7 +874,7 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: _extractOrderedPages.length,
       onReorder: disabled
-          ? (_, 2) {}
+          ? (_, _) {}
           : (oldIndex, newIndex) {
               setState(() {
                 if (newIndex > oldIndex) newIndex -= 1;
