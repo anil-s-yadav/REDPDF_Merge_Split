@@ -56,8 +56,9 @@ class FileIndexService {
             if (name == 'DCIM' ||
                 name == 'Pictures' ||
                 name == 'Movies' ||
-                name == 'Music')
+                name == 'Music') {
               continue;
+            }
             if (!showHidden) {
               if (name.startsWith('.') ||
                   name == 'Android' ||

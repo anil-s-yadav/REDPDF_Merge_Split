@@ -5,7 +5,6 @@ import '../../core/theme/pdf_theme_extension.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/pdf_provider.dart';
-import '../../widgets/premium_avatar.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});

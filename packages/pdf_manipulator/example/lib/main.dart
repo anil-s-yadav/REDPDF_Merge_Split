@@ -1324,8 +1324,7 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class CustomButton extends StatelessWidget {
-  const CustomButton({Key? key, required this.buttonText, this.onPressed})
-      : super(key: key);
+  const CustomButton({super.key, required this.buttonText, this.onPressed});
 
   final String buttonText;
   final void Function()? onPressed;
@@ -1344,7 +1343,7 @@ class CustomButton extends StatelessWidget {
   }
 }
 
-callSnackBar({required BuildContext context, required String text}) {
+void callSnackBar({required BuildContext context, required String text}) {
   ScaffoldMessenger.of(context).hideCurrentSnackBar();
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
     content: Text(text),

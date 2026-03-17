@@ -27,7 +27,7 @@ class PdfService {
         : '';
     final outPath = p.join(
       outDir.path,
-      'merged_${name1}${name2.isNotEmpty ? '_$name2' : ''}.pdf',
+      'merged_$name1${name2.isNotEmpty ? '_$name2' : ''}.pdf',
     );
 
     onProgress?.call("Preparing files...");
@@ -134,7 +134,7 @@ class PdfService {
       final range = uniqueRanges[i];
       final isSinglePage = range.from == range.to;
       final int pagesInThisRange = range.to - range.from + 1;
-      
+
       String outPath;
       if (isSinglePage) {
         outPath = p.join(outDir.path, '${inputName}_page_${range.from}.pdf');
@@ -142,8 +142,8 @@ class PdfService {
         // Fallback suffix if there's conflict
         final uniqueSuffix = uniqueRanges.length > 1 ? '_part_${i + 1}' : '';
         outPath = p.join(
-          outDir.path, 
-          'Split_${pagesInThisRange}_pages_$inputName$uniqueSuffix.pdf'
+          outDir.path,
+          'Split_${pagesInThisRange}_pages_$inputName$uniqueSuffix.pdf',
         );
       }
 
@@ -189,8 +189,9 @@ class PdfService {
     final count = await _getPdfPageCount(processPath, null);
 
     // Filter to valid page numbers while preserving the caller-supplied order
-    final orderedPages =
-        pages.where((pnum) => pnum >= 1 && pnum <= count).toList();
+    final orderedPages = pages
+        .where((pnum) => pnum >= 1 && pnum <= count)
+        .toList();
 
     if (orderedPages.isEmpty) {
       throw ArgumentError('No valid pages specified for extraction.');
@@ -198,14 +199,19 @@ class PdfService {
 
     final outPath = outputNameSuffix != null
         ? p.join(outDir.path, '${inputName}_$outputNameSuffix.pdf')
-        : p.join(outDir.path, 'Split_${orderedPages.length}_pages_$inputName.pdf');
+        : p.join(
+            outDir.path,
+            'Split_${orderedPages.length}_pages_$inputName.pdf',
+          );
 
     // Check whether the order matches the natural sorted order.
     final sortedUnique = orderedPages.toSet().toList()..sort();
     final isSortedNoDups =
         orderedPages.length == sortedUnique.length &&
-        List.generate(orderedPages.length, (i) => orderedPages[i] == sortedUnique[i])
-            .every((v) => v);
+        List.generate(
+          orderedPages.length,
+          (i) => orderedPages[i] == sortedUnique[i],
+        ).every((v) => v);
 
     if (isSortedNoDups) {
       // Fast path: use native pdfPageDeleter (preserves original order)
@@ -267,10 +273,7 @@ class PdfService {
         }
         // Copy graphics/content via template
         final template = srcPage.createTemplate();
-        destPage.graphics.drawPdfTemplate(
-          template,
-          Offset.zero,
-        );
+        destPage.graphics.drawPdfTemplate(template, Offset.zero);
       }
 
       onProgress?.call('Saving reordered PDF...');

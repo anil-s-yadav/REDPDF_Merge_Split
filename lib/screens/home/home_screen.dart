@@ -4,7 +4,6 @@ import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/pdf_provider.dart';
-import '../../widgets/premium_avatar.dart';
 import '../../widgets/action_pill.dart';
 import '../../models/pdf_models.dart';
 import '../../permission/permission_provider.dart';
