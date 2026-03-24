@@ -1,3 +1,15 @@
+
+
+import java.util.Properties
+import java.io.FileInputStream
+
+// 1. Load the properties file from the app folder
+val keystorePropertiesFile = project.file("key.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -5,14 +17,8 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-val keystorePropertiesFile = rootProject.file("app/key.properties")
-val keystoreProperties = java.util.Properties()
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(keystorePropertiesFile.inputStream())
-}
-
 android {
-    namespace = "pdf_merge_and_splitcom.legendarysoftware.marge_pdf_split_pdf"
+    namespace = "com.legendarysoftware.marge_pdf_split_pdf"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -27,7 +33,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "pdf_merge_and_splitcom.legendarysoftware.marge_pdf_split_pdf"
+        applicationId = "com.legendarysoftware.marge_pdf_split_pdf"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -51,13 +57,6 @@ android {
         }
     }
 
-    // buildTypes {
-    //     release {
-    //         // TODO: Add your own signing config for the release build.
-    //         // Signing with the debug keys for now, so `flutter run --release` works.
-    //         signingConfig = signingConfigs.getByName("debug")
-    //     }
-    // }
 }
 
 flutter {
