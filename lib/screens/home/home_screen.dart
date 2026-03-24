@@ -1,4 +1,7 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:in_app_update/in_app_update.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
@@ -24,17 +27,37 @@ class _HomeScreenState extends State<HomeScreen>
   // late TabController _tabController;
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // _tabController = TabController(length: 2, vsync: this);
-    // _searchController.addListener(() {
-    //   setState(() {});
-    // });
-
+    _checkUpdate();
     _initialCheck();
+  }
+
+  Future<void> _checkUpdate() async {
+    try {
+      final info = await InAppUpdate.checkForUpdate();
+
+      switch (info.updateAvailability) {
+        case UpdateAvailability.updateAvailable:
+          await InAppUpdate.performImmediateUpdate();
+          break;
+
+        case UpdateAvailability.updateNotAvailable:
+          log("No update available");
+          break;
+
+        case UpdateAvailability.developerTriggeredUpdateInProgress:
+          await InAppUpdate.performImmediateUpdate();
+          break;
+
+        default:
+          break;
+      }
+    } catch (e) {
+      log("Error checking update: $e");
+    }
   }
 
   Future<void> _initialCheck() async {
@@ -88,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen>
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 SizedBox(height: size.height * 0.03),
-                _buildHeader(context, userProvider),
+                _buildHeader(context, userProvider, colorScheme),
                 SizedBox(height: size.height * 0.04),
                 _buildActionButtons(context, pdfTheme, size),
                 SizedBox(height: size.height * 0.04),
@@ -127,7 +150,11 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildHeader(BuildContext context, UserProvider user) {
+  Widget _buildHeader(
+    BuildContext context,
+    UserProvider user,
+    ColorScheme colorScheme,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -136,9 +163,10 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
             Text(
               'PDF - Merge and Split',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.75),
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
@@ -471,6 +499,8 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             title: Text(
               file.name,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontWeight: FontWeight.w400),
             ),
             subtitle: Text(

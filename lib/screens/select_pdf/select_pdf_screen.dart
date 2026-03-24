@@ -300,7 +300,9 @@ class _SelectPdfScreenState extends State<SelectPdfScreen> {
             ),
             title: Text(
               file.name,
-              style: textTheme.titleMedium,
+              style: textTheme.titleMedium!.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.9),
+              ),
               // style: TextStyle(
               //   fontWeight: FontWeight.w600,
               //   color: colorScheme.,
@@ -308,7 +310,10 @@ class _SelectPdfScreenState extends State<SelectPdfScreen> {
             ),
             subtitle: Text(
               '${file.date} \u2022 ${file.size}',
-              style: textTheme.bodyMedium,
+              style: textTheme.bodyMedium!.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.5),
+                fontSize: 13,
+              ),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
