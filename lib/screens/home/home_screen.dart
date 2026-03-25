@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:provider/provider.dart';
@@ -31,7 +32,9 @@ class _HomeScreenState extends State<HomeScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _checkUpdate();
+    if (!kDebugMode) {
+      _checkUpdate();
+    }
     _initialCheck();
   }
 
