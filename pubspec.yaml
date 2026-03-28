@@ -1,12 +1,9 @@
 name: stitch
 description: "A new Flutter project."
-<<<<<<< HEAD
-publish_to: 'none'
-version: 1.0.0
-=======
+
 publish_to: "none"
 version: 0.1.0+2
->>>>>>> e9c69d6621cdf8f8701f11f3d41546a5935f6dc5
+
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
