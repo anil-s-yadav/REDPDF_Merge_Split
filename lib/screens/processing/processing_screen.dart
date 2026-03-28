@@ -53,7 +53,10 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
     });
   }
 
-  Future<void> _runTask({Map<String, String>? extraPasswords, String? retryPassword}) async {
+  Future<void> _runTask({
+    Map<String, String>? extraPasswords,
+    String? retryPassword,
+  }) async {
     final provider = context.read<PdfProvider>();
     PdfJobResult? result;
 
@@ -104,7 +107,9 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Row(
             children: [
               Icon(Icons.lock_outline, color: Colors.orange),
@@ -229,7 +234,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         final shouldPop = await _onWillPop();
-        if (shouldPop && mounted) {
+        if (shouldPop && context.mounted) {
           Navigator.of(context).pop();
         }
       },
@@ -378,7 +383,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
                     child: OutlinedButton.icon(
                       onPressed: () async {
                         final shouldPop = await _onWillPop();
-                        if (shouldPop && mounted) {
+                        if (shouldPop && context.mounted) {
                           Navigator.pop(context);
                         }
                       },

@@ -117,10 +117,10 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
           : PdfDocument(inputBytes: bytes, password: password);
       final count = doc.pages.count;
       doc.dispose();
-      
+
       try {
         _pdfDocument?.close();
-        _pdfDocument = password == null 
+        _pdfDocument = password == null
             ? await pdfx.PdfDocument.openFile(path)
             : await pdfx.PdfDocument.openFile(path, password: password);
       } catch (_) {
@@ -146,8 +146,9 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
         final pwd = await showDialog<String>(
           context: context,
           builder: (ctx) => AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             title: const Row(
               children: [
                 Icon(Icons.lock_outline, color: Colors.orange),
@@ -194,9 +195,9 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
           await _loadPageCount(password: pwd);
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not read PDF: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not read PDF: $e')));
       }
     }
   }
@@ -233,7 +234,9 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
         final from = int.tryParse(sub.first.trim());
         final to = int.tryParse(sub.last.trim());
         if (from != null && to != null) {
-          for (var x = from; x <= to; x++) { nums.add(x); }
+          for (var x = from; x <= to; x++) {
+            nums.add(x);
+          }
         }
       } else {
         final n = int.tryParse(part.trim());
@@ -244,8 +247,7 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
     return nums.toSet().toList()..sort();
   }
 
-  String _listToText(Iterable<int> pages) =>
-      (pages.toList()..sort()).join(',');
+  String _listToText(Iterable<int> pages) => (pages.toList()..sort()).join(',');
 
   // ─── toggle grid taps ──────────────────────────────────────────────────────
   void _toggleExtractPage(int pageNum) {
@@ -296,14 +298,14 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
       }
       final surviving = <int>[];
       for (var i = 1; i <= _pageCount!; i++) {
-        if (!_deleteSelected.contains(i)) { surviving.add(i); }
+        if (!_deleteSelected.contains(i)) {
+          surviving.add(i);
+        }
       }
       if (surviving.isEmpty) {
         messenger.showSnackBar(
           const SnackBar(
-            content: Text(
-              'Cannot delete all pages. At least one must remain.',
-            ),
+            content: Text('Cannot delete all pages. At least one must remain.'),
           ),
         );
         return;
@@ -333,9 +335,7 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
           : _parsePageList(_extractController.text);
       if (ordered.isEmpty) {
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Select at least one page to extract.'),
-          ),
+          const SnackBar(content: Text('Select at least one page to extract.')),
         );
         return;
       }
@@ -358,12 +358,8 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
     }
 
     // --- RANGE / EVERY-PAGE mode ---
-    final effectiveRanges =
-        _mode == _SplitMode.everyPage && _pageCount != null
-        ? List<PageRange>.generate(
-            _pageCount!,
-            (i) => PageRange(i + 1, i + 1),
-          )
+    final effectiveRanges = _mode == _SplitMode.everyPage && _pageCount != null
+        ? List<PageRange>.generate(_pageCount!, (i) => PageRange(i + 1, i + 1))
         : _buildRangesForSplit();
 
     if (effectiveRanges.isEmpty) {
@@ -505,9 +501,17 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
             if (_mode == _SplitMode.range) ...[
               _buildRangeHeader(pdfTheme, provider.isProcessing),
               const SizedBox(height: 12),
-              ..._buildRangeEditors(colorScheme, pdfTheme, provider.isProcessing),
+              ..._buildRangeEditors(
+                colorScheme,
+                pdfTheme,
+                provider.isProcessing,
+              ),
             ] else if (_mode == _SplitMode.extract) ...[
-              _buildExtractSection(pdfTheme, colorScheme, provider.isProcessing),
+              _buildExtractSection(
+                pdfTheme,
+                colorScheme,
+                provider.isProcessing,
+              ),
             ] else if (_mode == _SplitMode.delete) ...[
               _buildDeleteSection(pdfTheme, colorScheme, provider.isProcessing),
             ] else if (_mode == _SplitMode.everyPage) ...[
@@ -707,7 +711,9 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
                     : () {
                         setState(() {
                           _deleteSelected.clear();
-                          _deleteController.removeListener(_onDeleteTextChanged);
+                          _deleteController.removeListener(
+                            _onDeleteTextChanged,
+                          );
                           _deleteController.text = '';
                           _deleteController.addListener(_onDeleteTextChanged);
                         });
@@ -808,10 +814,7 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
                       fit: StackFit.expand,
                       children: [
                         if (_thumbnails[pageNum] != null)
-                          Image.memory(
-                            _thumbnails[pageNum]!,
-                            fit: BoxFit.cover,
-                          )
+                          Image.memory(_thumbnails[pageNum]!, fit: BoxFit.cover)
                         else
                           Center(
                             child: _isLoadingThumbnails
@@ -895,8 +898,10 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
             ),
           ),
           child: ListTile(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 2,
+            ),
             leading: Container(
               width: 36,
               height: 46,
@@ -954,9 +959,12 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
                             _extractController.removeListener(
                               _onExtractTextChanged,
                             );
-                            _extractController.text =
-                                _listToText(_extractSelected);
-                            _extractController.addListener(_onExtractTextChanged);
+                            _extractController.text = _listToText(
+                              _extractSelected,
+                            );
+                            _extractController.addListener(
+                              _onExtractTextChanged,
+                            );
                           });
                         },
                 ),
@@ -1029,10 +1037,7 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
                       const SizedBox(width: 2),
                       const Text(
                         'Unlocked',
-                        style: TextStyle(
-                          color: Colors.orange,
-                          fontSize: 11,
-                        ),
+                        style: TextStyle(color: Colors.orange, fontSize: 11),
                       ),
                     ],
                   ],
@@ -1079,8 +1084,7 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: selected ? pdfTheme.splitPrimary : Colors.grey,
-                    fontWeight:
-                        selected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: selected ? FontWeight.bold : FontWeight.normal,
                     fontSize: 12,
                   ),
                 ),
@@ -1099,14 +1103,14 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
       if (!mounted) break;
       try {
         final page = await _pdfDocument!.getPage(i);
-       
+
         // We render at a small resolution
         final renderResult = await page.render(
           width: page.width / 4, // Intentionally double
           height: page.height / 4, // Intentionally double
           format: pdfx.PdfPageImageFormat.jpeg,
         );
-        
+
         if (renderResult != null && mounted) {
           setState(() {
             _thumbnails[i] = renderResult.bytes;
@@ -1121,7 +1125,7 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
   }
 
   // ─── parsing helpers ──────────────────────────────────────────────────────────
-    // ─── range header ──────────────────────────────────────────────────────────
+  // ─── range header ──────────────────────────────────────────────────────────
   Widget _buildRangeHeader(PdfThemeExtension pdfTheme, bool disabled) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1177,7 +1181,10 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
             'Creates a new PDF without the pages you marked. Ideal for removing blank or sensitive pages.';
         break;
     }
-    return Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.grey));
+    return Text(
+      subtitle,
+      style: const TextStyle(fontSize: 12, color: Colors.grey),
+    );
   }
 
   // ─── range editors ─────────────────────────────────────────────────────────

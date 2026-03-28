@@ -345,7 +345,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     });
                                   }
 
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -370,7 +370,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                         });
                                       }
 
-                                      if (mounted) {
+                                      if (context.mounted) {
                                         callSnackBar(
                                             context: context,
                                             text: result.toString());
@@ -394,7 +394,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       List<String>? result =
                                           await _fileSaver(params);
 
-                                      if (mounted) {
+                                      if (context.mounted) {
                                         callSnackBar(
                                             context: context,
                                             text: result.toString());
@@ -435,7 +435,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       _pickedFilePathForSplit = result[0];
                                     });
                                   }
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -461,7 +461,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     });
                                   }
 
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -491,7 +491,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     });
                                   }
 
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -520,7 +520,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     });
                                   }
 
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -550,7 +550,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     });
                                   }
 
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -582,7 +582,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       List<String>? result =
                                           await _fileSaver(params);
 
-                                      if (mounted) {
+                                      if (context.mounted) {
                                         callSnackBar(
                                             context: context,
                                             text: result.toString());
@@ -624,7 +624,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           result[0];
                                     });
                                   }
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -658,7 +658,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                         });
                                       }
 
-                                      if (mounted) {
+                                      if (context.mounted) {
                                         callSnackBar(
                                             context: context,
                                             text: result.toString());
@@ -689,7 +689,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       List<String>? result =
                                           await _fileSaver(params);
 
-                                      if (mounted) {
+                                      if (context.mounted) {
                                         callSnackBar(
                                             context: context,
                                             text: result.toString());
@@ -731,7 +731,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           result[0];
                                     });
                                   }
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -756,7 +756,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     });
                                   }
 
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -784,8 +784,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
                                       List<String>? result =
                                           await _fileSaver(params);
-
-                                      if (mounted) {
+                                      if (context.mounted) {
                                         callSnackBar(
                                             context: context,
                                             text: result.toString());
@@ -827,7 +826,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           result[0];
                                     });
                                   }
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -851,7 +850,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     });
                                   }
 
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -880,7 +879,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       List<String>? result =
                                           await _fileSaver(params);
 
-                                      if (mounted) {
+                                      if (context.mounted) {
                                         callSnackBar(
                                             context: context,
                                             text: result.toString());
@@ -922,7 +921,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           result[0];
                                     });
                                   }
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -948,7 +947,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     });
                                   }
 
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -977,7 +976,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       List<String>? result =
                                           await _fileSaver(params);
 
-                                      if (mounted) {
+                                      if (context.mounted) {
                                         callSnackBar(
                                             context: context,
                                             text: result.toString());
@@ -1019,7 +1018,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           result[0];
                                     });
                                   }
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -1043,7 +1042,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     });
                                   }
 
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -1072,7 +1071,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       List<String>? result =
                                           await _fileSaver(params);
 
-                                      if (mounted) {
+                                      if (context.mounted) {
                                         callSnackBar(
                                             context: context,
                                             text: result.toString());
@@ -1122,7 +1121,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       _pickedFilePathsForImagesToPDF = result;
                                     });
                                   }
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -1148,7 +1147,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     });
                                   }
 
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -1179,7 +1178,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       List<String>? result =
                                           await _fileSaver(params);
 
-                                      if (mounted) {
+                                      if (context.mounted) {
                                         callSnackBar(
                                             context: context,
                                             text: result.toString());
@@ -1221,7 +1220,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           result[0];
                                     });
                                   }
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -1240,7 +1239,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   List<PageSizeInfo>? result =
                                       await _pdfPagesSize(params);
 
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -1282,7 +1281,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     });
                                   }
 
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     callSnackBar(
                                         context: context,
                                         text: result.toString());
@@ -1305,7 +1304,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           await _pdfValidityAndProtection(
                                               params);
 
-                                      if (mounted) {
+                                      if (context.mounted) {
                                         callSnackBar(
                                             context: context,
                                             text: result.toString());

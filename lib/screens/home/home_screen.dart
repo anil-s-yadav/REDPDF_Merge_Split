@@ -230,13 +230,15 @@ class _HomeScreenState extends State<HomeScreen>
               await context.read<PdfProvider>().refreshSystemFiles(
                 forceRescan: true,
               );
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  behavior: SnackBarBehavior.floating,
-                  backgroundColor: colorScheme.primary.withAlpha(200),
-                  content: Text('Scanning for PDFs...'),
-                ),
-              );
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: colorScheme.primary.withAlpha(200),
+                    content: Text('Scanning for PDFs...'),
+                  ),
+                );
+              }
             } else if (status.isPermanentlyDenied) {
               await _showPermissionSettingsDialog(context);
             }
@@ -365,7 +367,7 @@ class _HomeScreenState extends State<HomeScreen>
               ElevatedButton(
                 onPressed: () async {
                   final status = await permProv.ensureStoragePermission();
-                  if (status.isGranted && context.mounted) {
+                  if (status.isGranted && mounted) {
                     await context.read<PdfProvider>().refreshSystemFiles(
                       forceRescan: true,
                     );

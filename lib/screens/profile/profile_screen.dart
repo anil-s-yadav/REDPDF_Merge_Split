@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
-import '../../providers/user_provider.dart';
+// import '../../providers/user_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/pdf_provider.dart';
 
@@ -11,7 +11,7 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = context.watch<UserProvider>();
+    // final userProvider = context.watch<UserProvider>();
     final themeProvider = context.watch<ThemeProvider>();
     final pdfProvider = context.watch<PdfProvider>();
     final pdfTheme = Theme.of(context).extension<PdfThemeExtension>()!;
@@ -146,92 +146,92 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildUpgradeCard(PdfThemeExtension pdfTheme) {
-    return Container(
-      padding: const EdgeInsets.all(AppConstants.spacing16),
-      decoration: BoxDecoration(
-        color: pdfTheme.goldLight.withAlpha(30),
-        borderRadius: BorderRadius.circular(AppConstants.borderRadius24),
-        border: Border.all(color: pdfTheme.gold.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Upgrade to Family Plan',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: pdfTheme.gold,
-                  ),
-                ),
-                Text(
-                  'Share premium features with up to 5 members',
-                  style: TextStyle(
-                    color: pdfTheme.gold.withValues(alpha: 2),
-                    fontSize: 13,
-                  ),
-                ),
+  // Widget _buildUpgradeCard(PdfThemeExtension pdfTheme) {
+  //   return Container(
+  //     padding: const EdgeInsets.all(AppConstants.spacing16),
+  //     decoration: BoxDecoration(
+  //       color: pdfTheme.goldLight.withAlpha(30),
+  //       borderRadius: BorderRadius.circular(AppConstants.borderRadius24),
+  //       border: Border.all(color: pdfTheme.gold.withValues(alpha: 0.3)),
+  //     ),
+  //     child: Row(
+  //       children: [
+  //         Expanded(
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Text(
+  //                 'Upgrade to Family Plan',
+  //                 style: TextStyle(
+  //                   fontWeight: FontWeight.bold,
+  //                   fontSize: 18,
+  //                   color: pdfTheme.gold,
+  //                 ),
+  //               ),
+  //               Text(
+  //                 'Share premium features with up to 5 members',
+  //                 style: TextStyle(
+  //                   color: pdfTheme.gold.withValues(alpha: 2),
+  //                   fontSize: 13,
+  //                 ),
+  //               ),
 
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: pdfTheme.gold,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color: pdfTheme.gold.withValues(alpha: 0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.stars, color: Colors.white, size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        'PREMIUM PLAN',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // ElevatedButton(
-                //   onPressed: () {},
-                //   style: ElevatedButton.styleFrom(
-                //     backgroundColor: pdfTheme.gold,
-                //     foregroundColor: Colors.white,
-                //     minimumSize: const Size(double.infinity, 40),
-                //     shape: RoundedRectangleBorder(
-                //       borderRadius: BorderRadius.circular(12),
-                //     ),
-                //   ),
-                //   child: const Text(
-                //     'Get premium',
-                //     style: TextStyle(fontWeight: FontWeight.bold),
-                //   ),
-                // ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          Icon(Icons.group_add, size: 30, color: pdfTheme.gold),
-        ],
-      ),
-    );
-  }
+  //               const SizedBox(height: 10),
+  //               Container(
+  //                 padding: const EdgeInsets.symmetric(
+  //                   horizontal: 12,
+  //                   vertical: 6,
+  //                 ),
+  //                 decoration: BoxDecoration(
+  //                   color: pdfTheme.gold,
+  //                   borderRadius: BorderRadius.circular(30),
+  //                   boxShadow: [
+  //                     BoxShadow(
+  //                       color: pdfTheme.gold.withValues(alpha: 0.3),
+  //                       blurRadius: 10,
+  //                       offset: const Offset(0, 4),
+  //                     ),
+  //                   ],
+  //                 ),
+  //                 child: const Row(
+  //                   mainAxisSize: MainAxisSize.min,
+  //                   children: [
+  //                     Icon(Icons.stars, color: Colors.white, size: 20),
+  //                     SizedBox(width: 8),
+  //                     Text(
+  //                       'PREMIUM PLAN',
+  //                       style: TextStyle(
+  //                         color: Colors.white,
+  //                         fontWeight: FontWeight.bold,
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //               // ElevatedButton(
+  //   onPressed: () {},
+  //   style: ElevatedButton.styleFrom(
+  //     backgroundColor: pdfTheme.gold,
+  //     foregroundColor: Colors.white,
+  //     minimumSize: const Size(double.infinity, 40),
+  //     shape: RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.circular(12),
+  //     ),
+  //   ),
+  //   child: const Text(
+  //     'Get premium',
+  //     style: TextStyle(fontWeight: FontWeight.bold),
+  //   ),
+  //               // ),
+  //             ],
+  //           ),
+  //         ),
+  //         const SizedBox(width: 16),
+  //         Icon(Icons.group_add, size: 30, color: pdfTheme.gold),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildSettingsItem(
     BuildContext context,
