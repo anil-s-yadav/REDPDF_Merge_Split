@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stitch/widgets/navigation.dart';
@@ -22,7 +23,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => PdfProvider()),
-        ChangeNotifierProvider(create: (_) => PermissionProvider()),
+        // ChangeNotifierProvider(create: (_) => PermissionProvider()),
+        if (!kIsWeb)
+          ChangeNotifierProvider(create: (_) => PermissionProvider()),
       ],
       child: const MainApp(),
     ),
@@ -47,14 +50,14 @@ class MainApp extends StatelessWidget {
           initialRoute: '/',
           routes: {
             '/': (context) => const NavigationPage(),
-            'home': (context) => const HomeScreen(),
+            '/home': (context) => const HomeScreen(),
             '/select-pdf': (context) => const SelectPdfScreen(),
             '/success': (context) => const SuccessScreen(),
             '/profile': (context) => const ProfileScreen(),
             '/upgrade': (context) => const UpgradeScreen(),
             '/split-pdf': (context) => const SplitPdfScreen(),
             '/viewer': (context) =>
-                const PdfViewerScreen(path: '', title: 'PDF Viewer'),
+                const PdfViewerScreen(path: 'sample.pdf', title: 'PDF Viewer'),
           },
         );
       },

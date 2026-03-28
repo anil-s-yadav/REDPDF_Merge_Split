@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
 // import '../../providers/user_provider.dart';
@@ -8,6 +9,13 @@ import '../../providers/pdf_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri)) {
+      throw Exception('Could not launch $uri');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +63,7 @@ class ProfileScreen extends StatelessWidget {
 
               // const SizedBox(height: 35),
               // _buildUpgradeCard(pdfTheme),
-              const SizedBox(height: 30),
+              // const SizedBox(height: 30),
               _buildSettingsItem(
                 context,
                 colorScheme,
@@ -68,7 +76,7 @@ class ProfileScreen extends StatelessWidget {
                   onChanged: (val) => themeProvider.toggleTheme(),
                 ),
               ),
-              const SizedBox(height: 16),
+              // const SizedBox(height: 16),
               _buildSettingsItem(
                 context,
                 colorScheme,
@@ -80,22 +88,32 @@ class ProfileScreen extends StatelessWidget {
                   onChanged: (val) => pdfProvider.toggleShowHiddenFiles(),
                 ),
               ),
-              const SizedBox(height: 16),
-              _buildSettingsItem(
-                context,
-                colorScheme,
-                icon: Icons.grid_view_rounded,
-                title: 'Our Other Apps',
-                trailing: const Icon(Icons.chevron_right),
+              // const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => _launchUrl(
+                  "https://play.google.com/store/apps/dev?id=8832237281097064209&hl=en_IN",
+                ),
+                child: _buildSettingsItem(
+                  context,
+                  colorScheme,
+                  icon: Icons.grid_view_rounded,
+                  title: 'Our Other Apps',
+                  trailing: const Icon(Icons.chevron_right),
+                ),
               ),
 
               // const SizedBox(height: 120),
-              _buildSettingsItem(
-                context,
-                colorScheme,
-                icon: Icons.privacy_tip_outlined,
-                title: 'Privacy Policy',
-                trailing: const Icon(Icons.chevron_right),
+              GestureDetector(
+                onTap: () => _launchUrl(
+                  "https://anil-s-yadav.github.io/REDPDF-PrivacyPolicy/",
+                ),
+                child: _buildSettingsItem(
+                  context,
+                  colorScheme,
+                  icon: Icons.privacy_tip_outlined,
+                  title: 'Privacy Policy',
+                  trailing: const Icon(Icons.chevron_right),
+                ),
               ),
               // const SizedBox(height: 12),
               _buildSettingsItem(
@@ -243,8 +261,9 @@ class ProfileScreen extends StatelessWidget {
   }) {
     return Container(
       padding: const EdgeInsets.all(8),
+      margin: EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -324,7 +343,9 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () => _launchUrl(
+              "https://play.google.com/store/apps/dev?id=8832237281097064209&hl=en_IN",
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: pdfTheme.mergePrimary,
               foregroundColor: Colors.white,

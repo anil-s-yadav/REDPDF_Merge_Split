@@ -1,4 +1,4 @@
-package com.legendarysoftware.pdf_merge_and_split
+package com.legendarysoftware.marge_pdf_split_pdf
 
 import android.media.MediaScannerConnection
 import android.os.Bundle
@@ -7,7 +7,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private val channelName = "com.legendarysoftware.pdf_merge_and_split/files"
+    private val channelName = "com.legendarysoftware.marge_pdf_split_pdf/files"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
