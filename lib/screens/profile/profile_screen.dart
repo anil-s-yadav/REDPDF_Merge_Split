@@ -344,7 +344,7 @@ class ProfileScreen extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () => _launchUrl(
-              "https://play.google.com/store/apps/dev?id=8832237281097064209&hl=en_IN",
+              'https://play.google.com/store/apps/details?id=com.legendarysoftware.marge_pdf_split_pdf',
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: pdfTheme.mergePrimary,

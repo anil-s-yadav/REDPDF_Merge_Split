@@ -8,7 +8,7 @@ allprojects {
     }
 }
 
-rootProject.layout.buildDirectory.value(rootProject.projectDir.parentFile.resolve("build"))
+rootProject.layout.buildDirectory.value(rootProject.layout.projectDirectory.dir(rootProject.projectDir.parentFile.resolve("build").absolutePath))
 
 subprojects {
     project.layout.buildDirectory.value(rootProject.layout.buildDirectory.get().dir(name))
