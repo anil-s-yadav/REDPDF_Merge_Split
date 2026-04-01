@@ -506,7 +506,7 @@ class _HomeScreenState extends State<HomeScreen>
               file.name,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w400),
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
             ),
             subtitle: Text(
               '${file.date} \u2022 ${file.size}',

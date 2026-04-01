@@ -300,7 +300,11 @@ class _SelectPdfScreenState extends State<SelectPdfScreen> {
             ),
             title: Text(
               file.name,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
               style: textTheme.titleMedium!.copyWith(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
                 color: colorScheme.onSurface.withValues(alpha: 0.9),
               ),
               // style: TextStyle(
