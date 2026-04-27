@@ -19,37 +19,43 @@ class Utils {
     fun copyDataFromSourceToDestDocument(
         sourceFileUri: Uri, destinationFileUri: Uri, contentResolver: ContentResolver
     ) {
-
         // its important to truncate an output file to size zero before writing to it
         // as user may have selected an old file to overwrite which need to be cleaned before writing
-        truncateDocumentToZeroSize(
-            uri = destinationFileUri, contentResolver = contentResolver
-        )
+        if (destinationFileUri.scheme == "file") {
+            try {
+                FileOutputStream(destinationFileUri.path).close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        } else {
+            truncateDocumentToZeroSize(
+                uri = destinationFileUri, contentResolver = contentResolver
+            )
+        }
 
-        try {
-            contentResolver.openInputStream(sourceFileUri).use { inputStream ->
-                contentResolver.openOutputStream(destinationFileUri).use { outputStream ->
-                    if (inputStream != null && outputStream != null) {
-                        try {
-                            inputStream.copyTo(outputStream)
-                            inputStream.close()
-                            outputStream.close()
-                            println("Data successfully copied from one file to another")
-                        } catch (e: Exception) {
-                            inputStream.close()
-                            outputStream.close()
-                            println(e)
-                            e.printStackTrace()
-                        }
-                    } else {
-                        println("Either inputStream or outputStream has null value")
-                    }
+        val inputStream: InputStream? = if (sourceFileUri.scheme == "content") {
+            contentResolver.openInputStream(sourceFileUri)
+        } else {
+            FileInputStream(sourceFileUri.path)
+        }
+
+        val outputStream: OutputStream? = if (destinationFileUri.scheme == "content") {
+            contentResolver.openOutputStream(destinationFileUri)
+        } else {
+            FileOutputStream(destinationFileUri.path)
+        }
+
+        if (inputStream != null && outputStream != null) {
+            inputStream.use { input ->
+                outputStream.use { output ->
+                    input.copyTo(output)
+                    println("Data successfully copied from one file to another")
                 }
             }
-        } catch (e: FileNotFoundException) {
-            e.printStackTrace()
-        } catch (e: IOException) {
-            e.printStackTrace()
+        } else {
+            inputStream?.close()
+            outputStream?.close()
+            throw IOException("Failed to open inputStream or outputStream for copying")
         }
     }
 
@@ -57,16 +63,10 @@ class Utils {
         try {
             contentResolver.openFileDescriptor(uri, "wt")?.use { parcelFileDescriptor ->
                 FileOutputStream(parcelFileDescriptor.fileDescriptor).use { fileOutputStream ->
-                    PrintWriter(fileOutputStream).use { printWriter ->
-                        printWriter.close()
-                    }
-                    fileOutputStream.close()
+                    fileOutputStream.channel.truncate(0)
                 }
-                parcelFileDescriptor.close()
             }
-        } catch (e: FileNotFoundException) {
-            e.printStackTrace()
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             e.printStackTrace()
         }
     }

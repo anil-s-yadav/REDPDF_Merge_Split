@@ -26,6 +26,37 @@ class ProfileScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Text(
+              "A product by: ",
+              style: TextStyle(
+                color: Colors.grey,
+                // fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+            Icon(Icons.picture_as_pdf, color: pdfTheme.splitPrimary),
+            const SizedBox(width: 8),
+            Text(
+              "RedPDF",
+              style: TextStyle(
+                color: pdfTheme.splitPrimary,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            const Spacer(),
+            IconButton(
+              onPressed: () => _launchUrl(
+                "https://play.google.com/store/apps/details?id=com.legendarysoftware.compress_pdf_redpdf",
+              ),
+              icon: Icon(Icons.star_border, color: Colors.orange),
+            ),
+          ],
+        ),
+      ),
       // appBar: AppBar(
       //   leading: IconButton(
       //     icon: const Icon(Icons.arrow_back),
