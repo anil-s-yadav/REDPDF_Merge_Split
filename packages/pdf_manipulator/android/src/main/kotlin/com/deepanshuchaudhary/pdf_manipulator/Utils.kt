@@ -23,7 +23,10 @@ class Utils {
         // as user may have selected an old file to overwrite which need to be cleaned before writing
         if (destinationFileUri.scheme == "file") {
             try {
-                FileOutputStream(destinationFileUri.path).close()
+                val destPath = destinationFileUri.path
+                if (destPath != null) {
+                    FileOutputStream(destPath).close()
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -33,35 +36,51 @@ class Utils {
             )
         }
 
-        val inputStream: InputStream? = if (sourceFileUri.scheme == "content") {
-            contentResolver.openInputStream(sourceFileUri)
-        } else {
-            FileInputStream(sourceFileUri.path)
-        }
+        var inputStream: InputStream? = null
+        var outputStream: OutputStream? = null
 
-        val outputStream: OutputStream? = if (destinationFileUri.scheme == "content") {
-            contentResolver.openOutputStream(destinationFileUri)
-        } else {
-            FileOutputStream(destinationFileUri.path)
-        }
-
-        if (inputStream != null && outputStream != null) {
-            inputStream.use { input ->
-                outputStream.use { output ->
-                    input.copyTo(output)
-                    println("Data successfully copied from one file to another")
+        try {
+            inputStream = contentResolver.openInputStream(sourceFileUri)
+            if (inputStream == null && sourceFileUri.scheme == "file") {
+                // Fallback for direct file access if content resolver fails on some devices
+                val path = sourceFileUri.path
+                if (path != null) {
+                    inputStream = FileInputStream(path)
                 }
             }
-            if (destinationFileUri.scheme == "file") {
-                val destFile = File(destinationFileUri.path)
-                if (destFile.length() == 0L) {
-                    throw IOException("Failed to copy data: The resulting file is empty or corrupted. Please make sure the source file is valid.")
+
+            outputStream = contentResolver.openOutputStream(destinationFileUri)
+            if (outputStream == null && destinationFileUri.scheme == "file") {
+                val path = destinationFileUri.path
+                if (path != null) {
+                    outputStream = FileOutputStream(path)
                 }
             }
-        } else {
-            inputStream?.close()
-            outputStream?.close()
-            throw IOException("Failed to open inputStream or outputStream for copying")
+
+            if (inputStream != null && outputStream != null) {
+                inputStream.use { input ->
+                    outputStream!!.use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                
+                // Final check to ensure data was actually copied
+                if (destinationFileUri.scheme == "file") {
+                    val destFile = File(destinationFileUri.path!!)
+                    if (destFile.length() == 0L) {
+                        // Check if source was also empty
+                        val sourceLength = if (sourceFileUri.scheme == "file") File(sourceFileUri.path!!).length() else -1L
+                        if (sourceLength != 0L) {
+                            throw IOException("Failed to copy data: The resulting file is empty, but source is not. Source: $sourceFileUri")
+                        }
+                    }
+                }
+            } else {
+                throw IOException("Failed to open inputStream ($inputStream) or outputStream ($outputStream) for URI: $sourceFileUri -> $destinationFileUri")
+            }
+        } finally {
+            try { inputStream?.close() } catch (e: Exception) {}
+            try { outputStream?.close() } catch (e: Exception) {}
         }
     }
 

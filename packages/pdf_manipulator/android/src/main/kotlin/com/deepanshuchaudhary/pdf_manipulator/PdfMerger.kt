@@ -16,178 +16,142 @@ import kotlinx.coroutines.yield
 import java.io.File
 
 // For merging multiple pdf files.
+// For merging multiple pdf files.
 suspend fun getMergedPDFPath(
     sourceFilesPaths: List<String>,
     context: Activity,
 ): String? {
-
-    val mergedPDFPath: String?
+    var mergedPDFPath: String? = null
 
     withContext(Dispatchers.IO) {
-
         val utils = Utils()
-
         val begin = System.nanoTime()
-
-        val mergeResultFile: File = File.createTempFile("mergeResultFile", ".pdf")
-
         val contentResolver: ContentResolver = context.contentResolver
+        
+        Log.d("PdfMerger", "Starting merge of ${sourceFilesPaths.size} files")
 
-        val tempListOfUrisForFilesToMerge: MutableList<Uri> = mutableListOf()
-        sourceFilesPaths.indices.map { index ->
-            yield()
-            val uri = Utils().getURI(sourceFilesPaths.elementAt(index))
-            tempListOfUrisForFilesToMerge.add(uri)
-        }
-
-        suspend fun checkForPDFTagging(): MutableList<Boolean> {
-            val listOfTaggingStatus: MutableList<Boolean> = mutableListOf()
-            tempListOfUrisForFilesToMerge.forEachIndexed { index, element ->
-                yield()
-                val tempFile: File =
-                    File.createTempFile("readerTempFile$index", ".pdf")
-                utils.copyDataFromSourceToDestDocument(
-                    sourceFileUri = element,
-                    destinationFileUri = tempFile.toUri(),
-                    contentResolver = contentResolver
-                )
-                if (tempFile.length() == 0L) {
-                    throw java.io.IOException("One of the selected files is empty or corrupted.")
-                }
-                val pdfReader = PdfReader(tempFile).setUnethicalReading(true)
-                pdfReader.setMemorySavingMode(true)
-                val pdfDoc = PdfDocument(pdfReader)
-                listOfTaggingStatus.add(pdfDoc.isTagged)
-                pdfDoc.close()
-                pdfReader.close()
-                tempFile.delete()
-
-            }
-            return listOfTaggingStatus
-        }
-
-        val listOfTaggingStatusForFilesToMerge: MutableList<Boolean> =
-            checkForPDFTagging()
-
-        fun tempTaggedPdfCreator(): File {
-            val tempTaggedPDFFile: File = File.createTempFile("taggedPDFFile", ".pdf")
-            //Initialize PDF writer
-            val writer = PdfWriter(tempTaggedPDFFile)
-
-            //Initialize PDF document
-            val pdf = PdfDocument(writer)
-
-            // Initialize document
-            val doc = Document(pdf)
-
-            //Set tagged
-            pdf.setTagged()
-            //add empty line
-            doc.add(Paragraph(" "))
-
-            //Close document
-            doc.close()
-            writer.close()
-            pdf.close()
-            return tempTaggedPDFFile
-        }
-
-        if (!(listOfTaggingStatusForFilesToMerge[0] || !listOfTaggingStatusForFilesToMerge.contains(
-                true
-            ))
-        ) {
-            val taggedPDFFile: File = tempTaggedPdfCreator()
-            tempListOfUrisForFilesToMerge.add(0, taggedPDFFile.toUri())
-            println(tempListOfUrisForFilesToMerge[0])
-        }
-
-
-        val sourceTempFilesList: MutableList<File> = mutableListOf()
-
-        //This is the file in which all
-        val parentTempFile: File = File.createTempFile("readerTempFile0", ".pdf")
-
-        yield()
-        utils.copyDataFromSourceToDestDocument(
-            sourceFileUri = tempListOfUrisForFilesToMerge[0],
-            destinationFileUri = parentTempFile.toUri(),
-            contentResolver = contentResolver
-        )
-
-        if (parentTempFile.length() == 0L) {
-            throw java.io.IOException("The first selected file is empty or corrupted.")
-        }
-
-        sourceTempFilesList.add(parentTempFile)
-
-        val pdfReader = PdfReader(parentTempFile).setUnethicalReading(true)
-
-        pdfReader.setMemorySavingMode(true)
-
+        // 1. Create result file
+        val mergeResultFile: File = File.createTempFile("mergeResultFile", ".pdf")
         val pdfWriter = PdfWriter(mergeResultFile)
-
         pdfWriter.setSmartMode(true)
         pdfWriter.compressionLevel = 9
 
-        val pdfDocument =
-            PdfDocument(pdfReader, pdfWriter)
-
-        val merger = PdfMerger(pdfDocument)
-
-
-        tempListOfUrisForFilesToMerge.forEachIndexed { index, element ->
-            if (index > 0) {
+        val tempListOfUrisForFilesToMerge: MutableList<Uri> = mutableListOf()
+        try {
+            // 2. Resolve all URIs
+            for (path in sourceFilesPaths) {
                 yield()
-                val tempFile: File =
-                    File.createTempFile("readerTempFile$index", ".pdf")
+                tempListOfUrisForFilesToMerge.add(utils.getURI(path))
+            }
 
-                utils.copyDataFromSourceToDestDocument(
-                    sourceFileUri = element,
-                    destinationFileUri = tempFile.toUri(),
-                    contentResolver = contentResolver
-                )
+            // 3. Check for PDF Tagging
+            val listOfTaggingStatus: MutableList<Boolean> = mutableListOf()
+            for ((index, uri) in tempListOfUrisForFilesToMerge.withIndex()) {
+                yield()
+                val tempCheckFile = File.createTempFile("tagCheck_$index", ".pdf")
+                try {
+                    utils.copyDataFromSourceToDestDocument(uri, tempCheckFile.toUri(), contentResolver)
+                    if (tempCheckFile.length() == 0L) {
+                        throw IOException("Source file at index $index is empty or inaccessible: $uri")
+                    }
+                    PdfReader(tempCheckFile).use { reader ->
+                        reader.setUnethicalReading(true)
+                        PdfDocument(reader).use { doc ->
+                            listOfTaggingStatus.add(doc.isTagged)
+                        }
+                    }
+                } finally {
+                    tempCheckFile.delete()
+                }
+            }
 
-                if (tempFile.length() == 0L) {
-                    throw java.io.IOException("One of the selected files is empty or corrupted.")
+            // 4. Handle Tagged PDF Logic (iText specific)
+            var taggedFileAdded = false
+            if (listOfTaggingStatus.isNotEmpty() && !listOfTaggingStatus[0] && listOfTaggingStatus.contains(true)) {
+                val taggedPDFFile = File.createTempFile("taggedMarker", ".pdf")
+                PdfWriter(taggedPDFFile).use { writer ->
+                    PdfDocument(writer).use { pdf ->
+                        Document(pdf).use { doc ->
+                            pdf.setTagged()
+                            doc.add(Paragraph(" "))
+                        }
+                    }
+                }
+                tempListOfUrisForFilesToMerge.add(0, taggedPDFFile.toUri())
+                taggedFileAdded = true
+                Log.d("PdfMerger", "Added tagging marker file at beginning")
+            }
+
+            // 5. Perform Merge
+            val firstUri = tempListOfUrisForFilesToMerge[0]
+            val parentTempFile = File.createTempFile("mergeParent", ".pdf")
+            try {
+                utils.copyDataFromSourceToDestDocument(firstUri, parentTempFile.toUri(), contentResolver)
+                if (parentTempFile.length() == 0L) {
+                    throw IOException("Failed to copy first file for merge: $firstUri")
                 }
 
-                sourceTempFilesList.add(tempFile)
+                PdfReader(parentTempFile).use { reader ->
+                    reader.setUnethicalReading(true)
+                    reader.setMemorySavingMode(true)
+                    
+                    PdfDocument(reader, pdfWriter).use { pdfDocument ->
+                        val merger = PdfMerger(pdfDocument)
+                        
+                        for (i in 1 until tempListOfUrisForFilesToMerge.size) {
+                            yield()
+                            val nextUri = tempListOfUrisForFilesToMerge[i]
+                            val nextTempFile = File.createTempFile("mergeNext_$i", ".pdf")
+                            try {
+                                utils.copyDataFromSourceToDestDocument(nextUri, nextTempFile.toUri(), contentResolver)
+                                if (nextTempFile.length() == 0L) {
+                                    throw IOException("Failed to copy file at index $i for merge: $nextUri")
+                                }
 
-                val pdfRead = PdfReader(tempFile).setUnethicalReading(true)
+                                PdfReader(nextTempFile).use { nextReader ->
+                                    nextReader.setUnethicalReading(true)
+                                    nextReader.setMemorySavingMode(true)
+                                    PdfDocument(nextReader).use { nextDoc ->
+                                        merger.merge(nextDoc, 1, nextDoc.numberOfPages)
+                                        pdfDocument.flushCopiedObjects(nextDoc)
+                                    }
+                                }
+                            } finally {
+                                nextTempFile.delete()
+                            }
+                        }
 
-                pdfRead.setMemorySavingMode(true)
-
-                val pdfDocument2 = PdfDocument(pdfRead)
-
-                merger.merge(pdfDocument2, 1, pdfDocument2.numberOfPages)
-
-
-                pdfDocument.flushCopiedObjects(pdfDocument2)
-
-                pdfDocument2.close()
-                pdfRead.close()
-
-                utils.deleteTempFiles(listOfTempFiles = listOf(tempFile))
-
+                        if (taggedFileAdded) {
+                            pdfDocument.removePage(1)
+                        }
+                    }
+                }
+            } finally {
+                parentTempFile.delete()
+                if (taggedFileAdded) {
+                    // Clean up the tagged marker file if it was created
+                    val markerUri = tempListOfUrisForFilesToMerge[0]
+                    if (markerUri.scheme == "file") {
+                        File(markerUri.path!!).delete()
+                    }
+                }
             }
+
+            Log.d("PdfMerger", "Merge completed successfully. Result size: ${mergeResultFile.length()}")
+            mergedPDFPath = mergeResultFile.path
+
+        } catch (e: Exception) {
+            Log.e("PdfMerger", "Merge failed", e)
+            mergeResultFile.delete()
+            throw e
+        } finally {
+            // pdfWriter is closed when the PdfDocument(reader, pdfWriter) is closed
+            // but we ensure it's closed just in case
+            try { pdfWriter.close() } catch (e: Exception) {}
         }
-        if (!(listOfTaggingStatusForFilesToMerge[0] || !listOfTaggingStatusForFilesToMerge.contains(
-                true
-            ))
-        ) {
-            pdfDocument.removePage(1)
-        }
-
-        pdfDocument.close()
-
-        println(mergeResultFile.length())
-
-        utils.deleteTempFiles(listOfTempFiles = listOf(parentTempFile))
 
         val end = System.nanoTime()
-        println("Elapsed time in nanoseconds: ${end - begin}")
-
-        mergedPDFPath = mergeResultFile.path
+        Log.d("PdfMerger", "Elapsed time in ms: ${(end - begin) / 1_000_000}")
     }
 
     return mergedPDFPath

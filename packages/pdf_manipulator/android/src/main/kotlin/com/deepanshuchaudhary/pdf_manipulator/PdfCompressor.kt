@@ -73,12 +73,15 @@ suspend fun getCompressedPDFPath(
                 if (PdfName.Image != stream.getAsName(PdfName.Subtype)) {
                     continue
                 }
-                if (PdfName.DCTDecode != stream.getAsName(PdfName.Filter)) {
+                if (PdfName.DCTDecode != stream.getAsName(PdfName.Filter) && PdfName.FlateDecode != stream.getAsName(PdfName.Filter)) {
                     continue
                 }
                 val image = PdfImageXObject(stream)
-                val width = (image.width * factor).toInt()
-                val height = (image.height * factor).toInt()
+                val originalWidth = image.width.toInt()
+                val originalHeight = image.height.toInt()
+                
+                val width = (originalWidth * factor).toInt()
+                val height = (originalHeight * factor).toInt()
                 if (width <= 0 || height <= 0) {
                     continue
                 }
@@ -86,32 +89,41 @@ suspend fun getCompressedPDFPath(
                 val options: BitmapFactory.Options = BitmapFactory.Options()
                 options.inMutable = true
                 options.inPreferredConfig = Bitmap.Config.RGB_565
-                options.outWidth = width
-                options.outHeight = height
-
+                
+                // Decode the image. iText's imageBytes might be the encoded bytes (JPEG/PNG).
+                val imageBytes = image.imageBytes
                 val bmp = BitmapFactory.decodeByteArray(
-                    image.imageBytes, 0, image.imageBytes.size, options
-                )
+                    imageBytes, 0, imageBytes.size, options
+                ) ?: continue
 
                 val matrix = Matrix()
-                matrix.postTranslate((-0).toFloat(), (-0).toFloat())
-
                 if (factor != 1.0f) matrix.postScale(factor, factor)
 
                 val scaledBitmap = Bitmap.createBitmap(
-                    bmp, 0, 0, bmp.width - 1, bmp.height - 1, matrix, true
+                    bmp, 0, 0, bmp.width, bmp.height, matrix, true
                 )
-                bmp.recycle()
+                if (bmp != scaledBitmap) {
+                    bmp.recycle()
+                }
+                
                 val scaledBitmapStream = ByteArrayOutputStream()
                 scaledBitmap.compress(Bitmap.CompressFormat.JPEG, quality, scaledBitmapStream)
 
+                val compressedBytes = scaledBitmapStream.toByteArray()
+                val scaledWidth = scaledBitmap.width
+                val scaledHeight = scaledBitmap.height
+                
                 scaledBitmap.recycle()
-                resetImageStream(
-                    stream,
-                    scaledBitmapStream.toByteArray(),
-                    image.width.toInt(),
-                    image.height.toInt()
-                )
+                
+                // Always replace if the compressed version is smaller or if we forced it
+                if (compressedBytes.size < imageBytes.size || factor < 1.0 || quality < 100) {
+                    resetImageStream(
+                        stream,
+                        compressedBytes,
+                        scaledWidth,
+                        scaledHeight
+                    )
+                }
                 scaledBitmapStream.close()
             }
         }
@@ -156,12 +168,7 @@ suspend fun getCompressedPDFPath(
 fun resetImageStream(
     stream: PdfStream, imgBytes: ByteArray, imgWidth: Int, imgHeight: Int
 ) {
-//    stream.clear()
-    if (stream.bytes.size > imgBytes.size) {
-        stream.setData(imgBytes)
-    } else {
-        stream.setData(stream.bytes)
-    }
+    stream.setData(imgBytes)
     stream.put(PdfName.Type, PdfName.XObject)
     stream.put(PdfName.Subtype, PdfName.Image)
     stream.put(PdfName.Filter, PdfName.DCTDecode)
@@ -169,6 +176,7 @@ fun resetImageStream(
     stream.put(PdfName.Height, PdfNumber(imgHeight))
     stream.put(PdfName.BitsPerComponent, PdfNumber(8))
     stream.put(PdfName.ColorSpace, PdfName.DeviceRGB)
+    stream.remove(PdfName.DecodeParms)
 }
 
 fun unEmbedTTF(dict: PdfDictionary) {
