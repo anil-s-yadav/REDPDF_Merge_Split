@@ -52,6 +52,12 @@ class Utils {
                     println("Data successfully copied from one file to another")
                 }
             }
+            if (destinationFileUri.scheme == "file") {
+                val destFile = File(destinationFileUri.path)
+                if (destFile.length() == 0L) {
+                    throw IOException("Failed to copy data: The resulting file is empty or corrupted. Please make sure the source file is valid.")
+                }
+            }
         } else {
             inputStream?.close()
             outputStream?.close()

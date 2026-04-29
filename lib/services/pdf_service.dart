@@ -22,10 +22,7 @@ class PdfService {
   }) async {
     final outDir = await _ensureOutputDir();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final outPath = p.join(
-      outDir.path,
-      'RedPdf_merge_$timestamp.pdf',
-    );
+    final fileName = 'RedPdf_merge_$timestamp.pdf';
 
     onProgress?.call("Preparing files...");
 
@@ -60,9 +57,9 @@ class PdfService {
     }
 
     onProgress?.call("Saving merged PDF...");
-    await File(tempMergedPath).copy(outPath);
-    await PlatformService.scanFiles([outPath]);
-    return outPath;
+    final finalOutPath = await _safeCopy(tempMergedPath, outDir, fileName);
+    await PlatformService.scanFiles([finalOutPath]);
+    return finalOutPath;
   }
 
   Future<PdfJobResult> splitByRanges({
@@ -134,19 +131,11 @@ class PdfService {
       final int pagesInThisRange = range.to - range.from + 1;
 
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      String outPath;
-      if (isSinglePage) {
-        outPath = p.join(outDir.path, 'RedPdf_split_page_${range.from}_$timestamp.pdf');
-      } else {
-        final uniqueSuffix = uniqueRanges.length > 1 ? '_part_${i + 1}' : '';
-        outPath = p.join(
-          outDir.path,
-          'RedPdf_split${uniqueSuffix}_$timestamp.pdf',
-        );
-      }
+      final uniqueSuffix = uniqueRanges.length > 1 ? '_${i + 1}' : '';
+      final fileName = 'RedPdf_split_$timestamp$uniqueSuffix.pdf';
 
-      await File(tempPaths[i]).copy(outPath);
-      outputs.add(outPath);
+      final finalOutPath = await _safeCopy(tempPaths[i], outDir, fileName);
+      outputs.add(finalOutPath);
     }
 
     final jobResult = PdfJobResult(
@@ -197,10 +186,8 @@ class PdfService {
     }
 
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final outPath = p.join(
-      outDir.path,
-      'RedPdf_extract_$timestamp.pdf',
-    );
+    final fileName = 'RedPdf_extract_$timestamp.pdf';
+    String outPath = p.join(outDir.path, fileName);
 
     // Check whether the order matches the natural sorted order.
     final sortedUnique = orderedPages.toSet().toList()..sort();
@@ -236,7 +223,7 @@ class PdfService {
       }
 
       onProgress?.call('Saving extracted PDF...');
-      await File(finalPathOutput).copy(outPath);
+      outPath = await _safeCopy(finalPathOutput, outDir, fileName);
     } else {
       // Ordered / rearranged path: build output PDF page-by-page using Syncfusion
       onProgress?.call('Rearranging pages...');
@@ -278,7 +265,16 @@ class PdfService {
       final outBytes = await outDoc.save();
       outDoc.dispose();
       srcDoc.dispose();
-      await File(outPath).writeAsBytes(outBytes);
+      try {
+        await File(outPath).writeAsBytes(outBytes);
+      } catch (e) {
+        if (Platform.isAndroid) {
+          outPath = p.join('/storage/emulated/0/Download', fileName);
+          await File(outPath).writeAsBytes(outBytes);
+        } else {
+          rethrow;
+        }
+      }
     }
 
     await PlatformService.scanFiles([outPath]);
@@ -335,10 +331,15 @@ class PdfService {
     if (Platform.isAndroid) {
       // Typical public Downloads path
       final dir = Directory('/storage/emulated/0/Download/RedPdf');
-      if (!await dir.exists()) {
-        await dir.create(recursive: true);
+      try {
+        if (!await dir.exists()) {
+          await dir.create(recursive: true);
+        }
+        return dir;
+      } catch (e) {
+        // Fallback to direct Download folder if creating subfolder fails
+        return Directory('/storage/emulated/0/Download');
       }
-      return dir;
     }
 
     // Fallback for other platforms: create folder in user's documents/downloads.
@@ -351,6 +352,29 @@ class PdfService {
       await downloads.create(recursive: true);
     }
     return downloads;
+  }
+
+  Future<String> _safeCopy(String tempPath, Directory outDir, String fileName) async {
+    String outPath = p.join(outDir.path, fileName);
+    try {
+      await File(tempPath).copy(outPath);
+      return outPath;
+    } catch (e) {
+      if (Platform.isAndroid) {
+        // Fallback to Download folder directly if copying to RedPdf fails
+        final fallbackPath = p.join('/storage/emulated/0/Download', fileName);
+        try {
+          await File(tempPath).copy(fallbackPath);
+          return fallbackPath;
+        } catch (_) {
+          // If copy still fails, try reading and writing bytes directly
+          final bytes = await File(tempPath).readAsBytes();
+          await File(fallbackPath).writeAsBytes(bytes);
+          return fallbackPath;
+        }
+      }
+      rethrow;
+    }
   }
 }
 

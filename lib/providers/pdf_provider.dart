@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -226,6 +227,14 @@ class PdfProvider with ChangeNotifier {
     } on PdfPasswordRequired catch (e) {
       _error = 'Password required for ${e.name}';
       rethrow;
+    } on PlatformException catch (e) {
+      final msg = e.message?.toLowerCase() ?? '';
+      if (msg.contains('pdf header not found') || msg.contains('empty or corrupted')) {
+        _error = 'One or more selected files are corrupted or not valid PDFs.';
+      } else {
+        _error = e.message ?? 'An unknown error occurred during processing.';
+      }
+      return null;
     } catch (e) {
       _error = e.toString();
       return null;
@@ -279,6 +288,14 @@ class PdfProvider with ChangeNotifier {
     } on PdfPasswordRequired catch (e) {
       _error = 'Password required for ${e.name}';
       rethrow;
+    } on PlatformException catch (e) {
+      final msg = e.message?.toLowerCase() ?? '';
+      if (msg.contains('pdf header not found') || msg.contains('empty or corrupted')) {
+        _error = 'The selected file is corrupted or not a valid PDF.';
+      } else {
+        _error = e.message ?? 'An unknown error occurred during processing.';
+      }
+      return null;
     } catch (e) {
       _error = e.toString();
       return null;
@@ -330,6 +347,14 @@ class PdfProvider with ChangeNotifier {
     } on PdfPasswordRequired catch (e) {
       _error = 'Password required for ${e.name}';
       rethrow;
+    } on PlatformException catch (e) {
+      final msg = e.message?.toLowerCase() ?? '';
+      if (msg.contains('pdf header not found') || msg.contains('empty or corrupted')) {
+        _error = 'The selected file is corrupted or not a valid PDF.';
+      } else {
+        _error = e.message ?? 'An unknown error occurred during processing.';
+      }
+      return null;
     } catch (e) {
       _error = e.toString();
       return null;

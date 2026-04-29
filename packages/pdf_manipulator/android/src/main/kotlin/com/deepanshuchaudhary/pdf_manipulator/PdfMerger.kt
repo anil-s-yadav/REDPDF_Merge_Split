@@ -51,6 +51,9 @@ suspend fun getMergedPDFPath(
                     destinationFileUri = tempFile.toUri(),
                     contentResolver = contentResolver
                 )
+                if (tempFile.length() == 0L) {
+                    throw java.io.IOException("One of the selected files is empty or corrupted.")
+                }
                 val pdfReader = PdfReader(tempFile).setUnethicalReading(true)
                 pdfReader.setMemorySavingMode(true)
                 val pdfDoc = PdfDocument(pdfReader)
@@ -111,6 +114,10 @@ suspend fun getMergedPDFPath(
             contentResolver = contentResolver
         )
 
+        if (parentTempFile.length() == 0L) {
+            throw java.io.IOException("The first selected file is empty or corrupted.")
+        }
+
         sourceTempFilesList.add(parentTempFile)
 
         val pdfReader = PdfReader(parentTempFile).setUnethicalReading(true)
@@ -139,6 +146,10 @@ suspend fun getMergedPDFPath(
                     destinationFileUri = tempFile.toUri(),
                     contentResolver = contentResolver
                 )
+
+                if (tempFile.length() == 0L) {
+                    throw java.io.IOException("One of the selected files is empty or corrupted.")
+                }
 
                 sourceTempFilesList.add(tempFile)
 

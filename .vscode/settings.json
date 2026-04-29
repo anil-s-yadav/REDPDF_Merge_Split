@@ -1,4 +1,5 @@
 {
   "java.configuration.updateBuildConfiguration": "automatic",
-  "cmake.sourceDirectory": "D:/REDPDF_Merge_Split/linux/flutter"
+  "cmake.sourceDirectory": "D:/REDPDF_Merge_Split/linux/flutter",
+  "cmake.ignoreCMakeListsMissing": true
 }

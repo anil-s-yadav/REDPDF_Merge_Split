@@ -33,13 +33,9 @@ class PdfManipulator(
                 val mergedPDFPath: String? = getMergedPDFPath(sourceFilesPaths!!, activity)
 
                 utils.finishSuccessfullyWithString(mergedPDFPath, resultCallback)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 utils.finishWithError(
-                    "mergePdfs_exception", e.stackTraceToString(), null, resultCallback
-                )
-            } catch (e: OutOfMemoryError) {
-                utils.finishWithError(
-                    "mergePdfs_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
+                    "mergePdfs_exception", e.message ?: e.toString(), e.stackTraceToString(), resultCallback
                 )
             }
         }
@@ -78,13 +74,9 @@ class PdfManipulator(
                     getSplitPDFPathsByPageCount(sourceFilePath!!, pageCount, activity)
                 }
                 utils.finishSplitSuccessfullyWithListOfString(splitPDFPaths, resultCallback)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 utils.finishWithError(
-                    "splitPdf_exception", e.stackTraceToString(), null, resultCallback
-                )
-            } catch (e: OutOfMemoryError) {
-                utils.finishWithError(
-                    "splitPdf_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
+                    "splitPdf_exception", e.message ?: e.toString(), e.stackTraceToString(), resultCallback
                 )
             }
         }
@@ -108,13 +100,9 @@ class PdfManipulator(
                     getPDFPageDeleter(sourceFilePath!!, pageNumbers!!, activity)
 
                 utils.finishSuccessfullyWithString(resultPDFPath, resultCallback)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 utils.finishWithError(
-                    "removePdfPages_exception", e.stackTraceToString(), null, resultCallback
-                )
-            } catch (e: OutOfMemoryError) {
-                utils.finishWithError(
-                    "removePdfPages_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
+                    "removePdfPages_exception", e.message ?: e.toString(), e.stackTraceToString(), resultCallback
                 )
             }
         }
@@ -138,13 +126,9 @@ class PdfManipulator(
                     getPDFPageReorder(sourceFilePath!!, pageNumbers!!, activity)
 
                 utils.finishSuccessfullyWithString(resultPDFPath, resultCallback)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 utils.finishWithError(
-                    "pdfPageReorder_exception", e.stackTraceToString(), null, resultCallback
-                )
-            } catch (e: OutOfMemoryError) {
-                utils.finishWithError(
-                    "pdfPageReorder_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
+                    "pdfPageReorder_exception", e.message ?: e.toString(), e.stackTraceToString(), resultCallback
                 )
             }
         }
@@ -177,13 +161,9 @@ class PdfManipulator(
                     getPDFPageRotator(sourceFilePath!!, newPagesRotationInfo, activity)
 
                 utils.finishSuccessfullyWithString(resultPDFPath, resultCallback)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 utils.finishWithError(
-                    "pdfPageRotator_exception", e.stackTraceToString(), null, resultCallback
-                )
-            } catch (e: OutOfMemoryError) {
-                utils.finishWithError(
-                    "pdfPageRotator_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
+                    "pdfPageRotator_exception", e.message ?: e.toString(), e.stackTraceToString(), resultCallback
                 )
             }
         }
@@ -223,18 +203,11 @@ class PdfManipulator(
                 )
 
                 utils.finishSuccessfullyWithString(resultPDFPath, resultCallback)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 utils.finishWithError(
                     "pdfPageRotatorDeleterReorder_exception",
+                    e.message ?: e.toString(),
                     e.stackTraceToString(),
-                    null,
-                    resultCallback
-                )
-            } catch (e: OutOfMemoryError) {
-                utils.finishWithError(
-                    "pdfPageRotatorDeleterReorder_OutOfMemoryError",
-                    e.stackTraceToString(),
-                    null,
                     resultCallback
                 )
             }
@@ -263,13 +236,9 @@ class PdfManipulator(
                 )
 
                 utils.finishSuccessfullyWithString(resultPDFPath, resultCallback)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 utils.finishWithError(
-                    "pdfCompressor_exception", e.stackTraceToString(), null, resultCallback
-                )
-            } catch (e: OutOfMemoryError) {
-                utils.finishWithError(
-                    "pdfCompressor_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
+                    "pdfCompressor_exception", e.message ?: e.toString(), e.stackTraceToString(), resultCallback
                 )
             }
         }
@@ -312,13 +281,9 @@ class PdfManipulator(
                 )
 
                 utils.finishSuccessfullyWithString(resultPDFPath, resultCallback)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 utils.finishWithError(
-                    "pdfCompressor_exception", e.stackTraceToString(), null, resultCallback
-                )
-            } catch (e: OutOfMemoryError) {
-                utils.finishWithError(
-                    "pdfCompressor_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
+                    "pdfCompressor_exception", e.message ?: e.toString(), e.stackTraceToString(), resultCallback
                 )
             }
         }
@@ -345,13 +310,9 @@ class PdfManipulator(
                 } else {
                     utils.finishSplitSuccessfullyWithListOfListOfDouble(result, resultCallback)
                 }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 utils.finishWithError(
-                    "pdfCompressor_exception", e.stackTraceToString(), null, resultCallback
-                )
-            } catch (e: OutOfMemoryError) {
-                utils.finishWithError(
-                    "pdfCompressor_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
+                    "pdfPagesSize_exception", e.message ?: e.toString(), e.stackTraceToString(), resultCallback
                 )
             }
         }
@@ -377,18 +338,11 @@ class PdfManipulator(
 
                 utils.finishSplitSuccessfullyWithListOfBoolean(result, resultCallback)
 
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 utils.finishWithError(
                     "pdfValidityAndProtection_exception",
+                    e.message ?: e.toString(),
                     e.stackTraceToString(),
-                    null,
-                    resultCallback
-                )
-            } catch (e: OutOfMemoryError) {
-                utils.finishWithError(
-                    "pdfValidityAndProtection_OutOfMemoryError",
-                    e.stackTraceToString(),
-                    null,
                     resultCallback
                 )
             }
@@ -415,13 +369,9 @@ class PdfManipulator(
 
                 utils.finishSuccessfullyWithString(result, resultCallback)
 
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 utils.finishWithError(
-                    "pdfDecryption_exception", e.stackTraceToString(), null, resultCallback
-                )
-            } catch (e: OutOfMemoryError) {
-                utils.finishWithError(
-                    "pdfDecryption_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
+                    "pdfDecryption_exception", e.message ?: e.toString(), e.stackTraceToString(), resultCallback
                 )
             }
         }
@@ -477,13 +427,9 @@ class PdfManipulator(
 
                 utils.finishSuccessfullyWithString(pdfPath, resultCallback)
 
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 utils.finishWithError(
-                    "pdfEncryption_exception", e.stackTraceToString(), null, resultCallback
-                )
-            } catch (e: OutOfMemoryError) {
-                utils.finishWithError(
-                    "pdfEncryption_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
+                    "pdfEncryption_exception", e.message ?: e.toString(), e.stackTraceToString(), resultCallback
                 )
             }
         }
@@ -513,15 +459,10 @@ class PdfManipulator(
                     utils.finishSplitSuccessfullyWithListOfString(result, resultCallback)
                 }
 
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 Log.e(LOG_TAG, "imagesToPdfs_exception", e)
                 utils.finishWithError(
-                    "imagesToPdfs_exception", e.stackTraceToString(), null, resultCallback
-                )
-            } catch (e: OutOfMemoryError) {
-                Log.e(LOG_TAG, "imagesToPdfs_OutOfMemoryError", e)
-                utils.finishWithError(
-                    "imagesToPdfs_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
+                    "imagesToPdfs_exception", e.message ?: e.toString(), e.stackTraceToString(), resultCallback
                 )
             }
         }

@@ -566,6 +566,7 @@ class _HomeScreenState extends State<HomeScreen>
                           onPressed: () => Navigator.pop(ctx, true),
                           child: const Text('Delete'),
                         ),
+                        
                       ],
                     ),
                   );
