@@ -1,0 +1,4 @@
+-keep class com.itextpdf.** { *; }
+-keep class org.bouncycastle.** { *; }
+-dontwarn com.itextpdf.**
+-dontwarn org.bouncycastle.**
