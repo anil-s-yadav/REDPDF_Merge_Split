@@ -7,12 +7,31 @@ import 'package:path/path.dart' as p;
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
 import '../../providers/pdf_provider.dart';
+import '../../widgets/rate_us_dialog.dart';
 import '../viewer/pdf_viewer_screen.dart';
 
-class SuccessScreen extends StatelessWidget {
+class SuccessScreen extends StatefulWidget {
   final bool isSplit;
 
   const SuccessScreen({super.key, this.isSplit = false});
+
+  @override
+  State<SuccessScreen> createState() => _SuccessScreenState();
+}
+
+class _SuccessScreenState extends State<SuccessScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Show the rate-us dialog after the success animation finishes
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        RateUsDialog.showIfNeeded(context);
+      }
+    });
+  }
+
+  bool get isSplit => widget.isSplit;
 
   @override
   Widget build(BuildContext context) {

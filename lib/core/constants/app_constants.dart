@@ -16,5 +16,5 @@ class AppConstants {
   static const double borderRadius32 = 32.0;
 
   static const String appName = 'PDF Master';
-  static const String version = 'v1.0.8 (build 8)';
+  static const String version = 'v1.0.10 (build 10)';
 }

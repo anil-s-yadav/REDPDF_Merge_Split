@@ -14,6 +14,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import java.io.File
+import java.io.IOException
+import android.util.Log
 
 // For merging multiple pdf files.
 // For merging multiple pdf files.
@@ -23,7 +25,10 @@ suspend fun getMergedPDFPath(
 ): String? {
     var mergedPDFPath: String? = null
 
-    withContext(Dispatchers.IO) {
+    withContext<Unit>(Dispatchers.IO) {
+        // Workaround for Provider org.apache.xerces.parsers.XIncludeAwareParserConfiguration not found on Android 16
+        System.setProperty("javax.xml.parsers.DocumentBuilderFactory", "org.apache.harmony.xml.parsers.DocumentBuilderFactoryImpl")
+        System.setProperty("javax.xml.parsers.SAXParserFactory", "org.apache.harmony.xml.parsers.SAXParserFactoryImpl")
         val utils = Utils()
         val begin = System.nanoTime()
         val contentResolver: ContentResolver = context.contentResolver
