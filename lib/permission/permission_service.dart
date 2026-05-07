@@ -10,7 +10,8 @@ class PermissionService {
     }
     final info = await DeviceInfoPlugin().androidInfo;
     if (info.version.sdkInt >= 30) {
-      return Permission.manageExternalStorage.status;
+      // Scoped storage handles file access on Android 11+
+      return PermissionStatus.granted;
     }
     return Permission.storage.status;
   }
@@ -21,9 +22,8 @@ class PermissionService {
     }
     final info = await DeviceInfoPlugin().androidInfo;
     if (info.version.sdkInt >= 30) {
-      // For Android 11+, MANAGE_EXTERNAL_STORAGE is required to scan the entire storage for PDFs.
-      // This will open a system settings page for "All files access".
-      return await Permission.manageExternalStorage.request();
+      // No need to request permissions on Android 11+ for picking files or using app-specific directories
+      return PermissionStatus.granted;
     }
     // Android 10 and below
     return await Permission.storage.request();

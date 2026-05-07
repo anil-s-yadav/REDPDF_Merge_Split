@@ -16,6 +16,13 @@ class SelectPdfScreen extends StatefulWidget {
 
 class _SelectPdfScreenState extends State<SelectPdfScreen> {
   final Map<String, String> _passwords = {};
+  final TextEditingController _fileNameController = TextEditingController();
+
+  @override
+  void dispose() {
+    _fileNameController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickFiles(PdfProvider provider) async {
     // final permissionProvider = context.read<PermissionProvider>();
@@ -70,6 +77,7 @@ class _SelectPdfScreenState extends State<SelectPdfScreen> {
           estimatedSize: sizeStr,
           isLarge: isLarge,
           passwords: _passwords,
+          customFileName: _fileNameController.text.trim(),
         ),
       ),
     );
@@ -404,6 +412,21 @@ class _SelectPdfScreenState extends State<SelectPdfScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (canProcess)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: TextField(
+                controller: _fileNameController,
+                decoration: InputDecoration(
+                  labelText: 'Output File Name (Optional)',
+                  hintText: 'e.g. MyMergedPDF',
+                  prefixIcon: const Icon(Icons.edit_document),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+            ),
           ElevatedButton(
             onPressed: canProcess
                 ? () async {

@@ -21,6 +21,7 @@ class ProcessingScreen extends StatefulWidget {
   final List<int>? pages;
   final String? password;
   final String? suffix;
+  final String? customFileName;
 
   const ProcessingScreen({
     super.key,
@@ -33,6 +34,7 @@ class ProcessingScreen extends StatefulWidget {
     this.pages,
     this.password,
     this.suffix,
+    this.customFileName,
   });
 
   @override
@@ -64,12 +66,14 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
       if (widget.type == ProcessingJobType.merge) {
         result = await provider.mergeSelected(
           passwords: extraPasswords ?? widget.passwords,
+          customFileName: widget.customFileName,
         );
       } else if (widget.type == ProcessingJobType.split) {
         result = await provider.split(
           inputPath: widget.inputPath!,
           ranges: widget.ranges!,
           password: retryPassword ?? widget.password,
+          customFileName: widget.customFileName,
         );
       } else if (widget.type == ProcessingJobType.extract) {
         result = await provider.extract(
@@ -77,6 +81,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
           pages: widget.pages!,
           password: retryPassword ?? widget.password,
           outputNameSuffix: widget.suffix,
+          customFileName: widget.customFileName,
         );
       }
 

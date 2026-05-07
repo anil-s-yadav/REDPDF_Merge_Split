@@ -20,6 +20,20 @@ class FileIndexService {
         '/storage/emulated/0/Documents',
         '/storage/emulated/0/Download/RedPdf',
       ];
+      
+      try {
+        final extDir = await getExternalStorageDirectory();
+        if (extDir != null) {
+          commonFolders.add(p.join(extDir.path, 'RedPdf'));
+          commonFolders.add(extDir.path);
+        }
+      } catch (_) {}
+
+      try {
+        final appDir = await getApplicationDocumentsDirectory();
+        commonFolders.add(p.join(appDir.path, 'RedPdf'));
+        commonFolders.add(appDir.path);
+      } catch (_) {}
 
       for (final folder in commonFolders) {
         final dir = Directory(folder);

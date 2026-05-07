@@ -59,6 +59,8 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
   );
   final Set<int> _deleteSelected = {};
 
+  final TextEditingController _fileNameController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -76,6 +78,7 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
     _extractController.dispose();
     _deleteController.removeListener(_onDeleteTextChanged);
     _deleteController.dispose();
+    _fileNameController.dispose();
     _pdfDocument?.close();
     super.dispose();
   }
@@ -322,6 +325,7 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
             pages: surviving,
             password: _pdfPassword,
             suffix: 'deleted_${_deleteSelected.length}_pages',
+            customFileName: _fileNameController.text.trim(),
           ),
         ),
       );
@@ -351,6 +355,7 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
             pages: ordered,
             password: _pdfPassword,
             suffix: 'extracted',
+            customFileName: _fileNameController.text.trim(),
           ),
         ),
       );
@@ -380,6 +385,7 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
           inputPath: path,
           ranges: effectiveRanges,
           password: _pdfPassword,
+          customFileName: _fileNameController.text.trim(),
         ),
       ),
     );
@@ -536,6 +542,21 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
               const SizedBox(height: 24),
               const LinearProgressIndicator(),
             ] else ...[
+              if (canSplit)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: TextField(
+                    controller: _fileNameController,
+                    decoration: InputDecoration(
+                      labelText: 'Output File Name (Optional)',
+                      hintText: 'e.g. MySplitPDF',
+                      prefixIcon: const Icon(Icons.edit_document),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+                ),
               ElevatedButton(
                 onPressed: canSplit ? () => _runSplit(provider) : null,
                 style: ElevatedButton.styleFrom(

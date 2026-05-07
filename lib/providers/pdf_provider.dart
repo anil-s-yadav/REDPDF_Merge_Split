@@ -185,6 +185,7 @@ class PdfProvider with ChangeNotifier {
 
   Future<PdfJobResult?> mergeSelected({
     Map<String, String> passwords = const {},
+    String? customFileName,
   }) async {
     _error = null;
     _isProcessing = true;
@@ -203,6 +204,7 @@ class PdfProvider with ChangeNotifier {
       final output = await _pdfService.merge(
         inputPaths: paths,
         passwords: passwords,
+        customFileName: customFileName,
         onProgress: (msg) {
           _processingMessage = msg;
           _notifyThrottled();
@@ -248,6 +250,7 @@ class PdfProvider with ChangeNotifier {
     required String inputPath,
     required List<PageRange> ranges,
     String? password,
+    String? customFileName,
   }) async {
     _error = null;
     _isProcessing = true;
@@ -258,6 +261,7 @@ class PdfProvider with ChangeNotifier {
         inputPath: inputPath,
         ranges: ranges,
         password: password,
+        customFileName: customFileName,
         onProgress: (msg) {
           _processingMessage = msg;
           _notifyThrottled();
@@ -310,6 +314,7 @@ class PdfProvider with ChangeNotifier {
     required List<int> pages,
     String? password,
     String? outputNameSuffix,
+    String? customFileName,
   }) async {
     _error = null;
     _isProcessing = true;
@@ -321,6 +326,7 @@ class PdfProvider with ChangeNotifier {
         pages: pages,
         password: password,
         outputNameSuffix: outputNameSuffix,
+        customFileName: customFileName,
         onProgress: (msg) {
           _processingMessage = msg;
           _notifyThrottled();

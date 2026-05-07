@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as p;
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
@@ -406,8 +408,6 @@ class _SuccessScreenState extends State<SuccessScreen> {
               onPressed: () async {
                 final result = provider.lastResult;
                 if (result == null) return;
-                // "Save to device" is platform dependent; we implement as "open in system"
-                // or "share" to a file manager destination.
                 final path = !isSplit
                     ? result.outputPath
                     : (result.zipPath ??
@@ -415,7 +415,11 @@ class _SuccessScreenState extends State<SuccessScreen> {
                               ? result.outputPaths.first
                               : null));
                 if (path == null) return;
-                await OpenFilex.open(path);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('File is saved to Downloads/RedPdf')),
+                  );
+                }
               },
               style: OutlinedButton.styleFrom(
                 // minimumSize: const Size(double.infinity, 60),

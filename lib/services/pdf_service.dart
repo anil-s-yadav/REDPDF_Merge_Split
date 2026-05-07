@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:pdf_manipulator/pdf_manipulator.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
@@ -19,10 +20,13 @@ class PdfService {
     required List<String> inputPaths,
     Map<String, String> passwords = const {},
     void Function(String)? onProgress,
+    String? customFileName,
   }) async {
     final outDir = await _ensureOutputDir();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final fileName = 'RedPdf_merge_$timestamp.pdf';
+    final fileName = (customFileName != null && customFileName.isNotEmpty)
+        ? (customFileName.toLowerCase().endsWith('.pdf') ? customFileName : '$customFileName.pdf')
+        : 'RedPdf_merge_$timestamp.pdf';
 
     onProgress?.call("Preparing files...");
 
@@ -67,6 +71,7 @@ class PdfService {
     required List<PageRange> ranges,
     String? password,
     void Function(String)? onProgress,
+    String? customFileName,
   }) async {
     final outDir = await _ensureOutputDir();
     String inputName = p.basenameWithoutExtension(inputPath);
@@ -132,7 +137,10 @@ class PdfService {
 
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final uniqueSuffix = uniqueRanges.length > 1 ? '_${i + 1}' : '';
-      final fileName = 'RedPdf_split_$timestamp$uniqueSuffix.pdf';
+      final baseName = (customFileName != null && customFileName.isNotEmpty)
+          ? customFileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '')
+          : 'RedPdf_split_$timestamp';
+      final fileName = '$baseName$uniqueSuffix.pdf';
 
       final finalOutPath = await _safeCopy(tempPaths[i], outDir, fileName);
       outputs.add(finalOutPath);
@@ -155,6 +163,7 @@ class PdfService {
     String? password,
     String? outputNameSuffix,
     void Function(String)? onProgress,
+    String? customFileName,
   }) async {
     final outDir = await _ensureOutputDir();
     String inputName = p.basenameWithoutExtension(inputPath);
@@ -186,7 +195,15 @@ class PdfService {
     }
 
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final fileName = 'RedPdf_extract_$timestamp.pdf';
+    
+    String fileName;
+    if (customFileName != null && customFileName.isNotEmpty) {
+      fileName = customFileName.toLowerCase().endsWith('.pdf') ? customFileName : '$customFileName.pdf';
+    } else {
+      final suffixPart = outputNameSuffix != null ? '_$outputNameSuffix' : '';
+      fileName = 'RedPdf_extract_$timestamp$suffixPart.pdf';
+    }
+    
     String outPath = p.join(outDir.path, fileName);
 
     // Check whether the order matches the natural sorted order.
@@ -269,7 +286,8 @@ class PdfService {
         await File(outPath).writeAsBytes(outBytes);
       } catch (e) {
         if (Platform.isAndroid) {
-          outPath = p.join('/storage/emulated/0/Download', fileName);
+          final appDir = await getApplicationDocumentsDirectory();
+          outPath = p.join(appDir.path, fileName);
           await File(outPath).writeAsBytes(outBytes);
         } else {
           rethrow;
@@ -329,17 +347,33 @@ class PdfService {
 
   Future<Directory> _ensureOutputDir() async {
     if (Platform.isAndroid) {
-      // Typical public Downloads path
-      final dir = Directory('/storage/emulated/0/Download/RedPdf');
       try {
-        if (!await dir.exists()) {
-          await dir.create(recursive: true);
+        final downloadDir = Directory('/storage/emulated/0/Download/RedPdf');
+        if (!await downloadDir.exists()) {
+          await downloadDir.create(recursive: true);
         }
-        return dir;
-      } catch (e) {
-        // Fallback to direct Download folder if creating subfolder fails
-        return Directory('/storage/emulated/0/Download');
+        return downloadDir;
+      } catch (_) {}
+
+      // Use app-specific external directory which doesn't require storage permissions
+      try {
+        final extDir = await getExternalStorageDirectory();
+        if (extDir != null) {
+          final outDir = Directory(p.join(extDir.path, 'RedPdf'));
+          if (!await outDir.exists()) {
+            await outDir.create(recursive: true);
+          }
+          return outDir;
+        }
+      } catch (_) {}
+      
+      // Fallback to app documents directory
+      final appDir = await getApplicationDocumentsDirectory();
+      final fallbackDir = Directory(p.join(appDir.path, 'RedPdf'));
+      if (!await fallbackDir.exists()) {
+        await fallbackDir.create(recursive: true);
       }
+      return fallbackDir;
     }
 
     // Fallback for other platforms: create folder in user's documents/downloads.
@@ -361,8 +395,9 @@ class PdfService {
       return outPath;
     } catch (e) {
       if (Platform.isAndroid) {
-        // Fallback to Download folder directly if copying to RedPdf fails
-        final fallbackPath = p.join('/storage/emulated/0/Download', fileName);
+        // Fallback to application documents directory
+        final appDir = await getApplicationDocumentsDirectory();
+        final fallbackPath = p.join(appDir.path, fileName);
         try {
           await File(tempPath).copy(fallbackPath);
           return fallbackPath;
