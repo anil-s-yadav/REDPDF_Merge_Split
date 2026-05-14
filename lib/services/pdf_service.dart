@@ -389,6 +389,15 @@ class PdfService {
   }
 
   Future<String> _safeCopy(String tempPath, Directory outDir, String fileName) async {
+    if (Platform.isAndroid) {
+      final mediaStoreUri = await PlatformService.saveToDownloads(tempPath, fileName);
+      if (mediaStoreUri != null) {
+        // Return a virtual path or the URI so it can be passed around.
+        // It might not be readable via standard File API on Android 10+ if it's a content:// URI.
+        return mediaStoreUri;
+      }
+    }
+    
     String outPath = p.join(outDir.path, fileName);
     try {
       await File(tempPath).copy(outPath);

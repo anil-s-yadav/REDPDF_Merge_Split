@@ -64,15 +64,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> _initialCheck() async {
-    if (!mounted) return;
-    final status = await context
-        .read<PermissionProvider>()
-        .checkStoragePermission();
-    if (status.isGranted && mounted) {
-      // We force rescan here so the user always sees current files when opening the app.
-      // The FileIndexService is now optimized with a fast scan followed by deep scan.
-      await context.read<PdfProvider>().refreshSystemFiles(forceRescan: true);
-    }
+    // System file scanning removed.
   }
 
   @override
@@ -108,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           child: DefaultTabController(
             length: 2,
-            initialIndex: 1,
+            initialIndex: 0,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
@@ -125,23 +117,23 @@ class _HomeScreenState extends State<HomeScreen>
                     // controller: _tabController,
                     children: [
                       _buildFileList(
-                        pdfProvider.systemFiles
-                            .where((f) => f.name.toLowerCase().contains(query))
-                            .toList(),
-                        pdfTheme,
-                        isSystem: true,
-                      ), //system files
-                      _buildFileList(
                         pdfProvider.history
                             .where(
-                              (f) => f.name.toLowerCase().contains(
-                                _searchController.text.toLowerCase(),
-                              ),
+                              (f) => f.isMerge && f.name.toLowerCase().contains(query),
                             )
                             .toList(),
                         pdfTheme,
                         isHistory: true,
-                      ),
+                      ), //merge history
+                      _buildFileList(
+                        pdfProvider.history
+                            .where(
+                              (f) => !f.isMerge && f.name.toLowerCase().contains(query),
+                            )
+                            .toList(),
+                        pdfTheme,
+                        isHistory: true,
+                      ), //split history
                     ],
                   ),
                 ),
@@ -217,7 +209,6 @@ class _HomeScreenState extends State<HomeScreen>
       ],
     );
   }
-
   Widget _buildTabsAndSearch(
     ColorScheme colorScheme,
     PdfThemeExtension pdfTheme,
@@ -231,7 +222,6 @@ class _HomeScreenState extends State<HomeScreen>
           child: Container(
             alignment: Alignment.centerLeft,
             child: TabBar(
-              // controller: _tabController,
               tabAlignment: TabAlignment.start,
               isScrollable: true,
               labelColor: pdfTheme.mergePrimary,
@@ -241,39 +231,13 @@ class _HomeScreenState extends State<HomeScreen>
               indicatorColor: pdfTheme.mergePrimary,
               indicatorWeight: 3,
               indicatorSize: TabBarIndicatorSize.label,
-              // labelPadding: const EdgeInsets.symmetric(horizontal: 16),
               tabs: const [
-                Tab(text: 'All Files'),
-                Tab(text: 'History'),
+                Tab(text: 'Merge History'),
+                Tab(text: 'Split History'),
               ],
               dividerColor: Colors.transparent,
             ),
           ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.refresh),
-          tooltip: 'Scan for PDFs',
-          onPressed: () async {
-            final permProv = context.read<PermissionProvider>();
-            final status = await permProv.ensureStoragePermission();
-            if (!mounted) return;
-            if (status.isGranted) {
-              await context.read<PdfProvider>().refreshSystemFiles(
-                forceRescan: true,
-              );
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: colorScheme.primary.withAlpha(200),
-                    content: Text('Scanning for PDFs...'),
-                  ),
-                );
-              }
-            } else if (status.isPermanentlyDenied) {
-              await _showPermissionSettingsDialog(context);
-            }
-          },
         ),
         AnimatedContainer(
           duration: const Duration(milliseconds: 300),

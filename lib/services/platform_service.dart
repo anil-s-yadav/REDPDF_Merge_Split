@@ -15,4 +15,17 @@ class PlatformService {
       // best-effort only
     }
   }
+
+  static Future<String?> saveToDownloads(String tempPath, String fileName) async {
+    if (!Platform.isAndroid) return null;
+    try {
+      final String? result = await _channel.invokeMethod<String>('saveToDownloads', {
+        'filePath': tempPath,
+        'fileName': fileName,
+      });
+      return result;
+    } catch (e) {
+      return null;
+    }
+  }
 }
