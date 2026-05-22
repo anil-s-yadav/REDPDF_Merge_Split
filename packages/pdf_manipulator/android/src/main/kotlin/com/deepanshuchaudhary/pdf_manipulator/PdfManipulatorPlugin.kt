@@ -36,6 +36,23 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
 
         pluginBinding = flutterPluginBinding
 
+        // Fix for Android 13+ where the OS removed built-in Xerces XML parser classes.
+        // iText 7 internally uses javax.xml.parsers and expects Xerces to be available.
+        // Without this, split/merge operations crash with:
+        // "Provider org.apache.xerces.parsers.XIncludeAwareParserConfiguration not found"
+        try {
+            System.setProperty(
+                "javax.xml.parsers.DocumentBuilderFactory",
+                "org.apache.xerces.jaxp.DocumentBuilderFactoryImpl"
+            )
+            System.setProperty(
+                "javax.xml.parsers.SAXParserFactory",
+                "org.apache.xerces.jaxp.SAXParserFactoryImpl"
+            )
+        } catch (e: Exception) {
+            Log.w(LOG_TAG, "Failed to set XML parser factory properties: ${e.message}")
+        }
+
         val messenger = pluginBinding?.binaryMessenger
         doOnAttachedToEngine(messenger!!)
 

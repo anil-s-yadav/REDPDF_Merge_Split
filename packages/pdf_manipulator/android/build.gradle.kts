@@ -61,4 +61,6 @@ dependencies {
     implementation("org.slf4j:slf4j-api:1.7.36")
     implementation("com.itextpdf.android:kernel-android:7.2.4")
     implementation("com.itextpdf.android:layout-android:7.2.4")
+    // Xerces XML parser - required for iText on Android 13+ where the OS removed built-in Xerces classes
+    implementation("xerces:xercesImpl:2.12.2")
 }

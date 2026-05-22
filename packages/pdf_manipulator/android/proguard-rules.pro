@@ -1,4 +1,10 @@
 -keep class com.itextpdf.** { *; }
 -keep class org.bouncycastle.** { *; }
+-keep class org.apache.xerces.** { *; }
+-keep class org.apache.xml.** { *; }
+-keep class javax.xml.** { *; }
 -dontwarn com.itextpdf.**
 -dontwarn org.bouncycastle.**
+-dontwarn org.apache.xerces.**
+-dontwarn org.apache.xml.**
+-dontwarn javax.xml.**

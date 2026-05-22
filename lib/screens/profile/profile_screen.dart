@@ -122,7 +122,7 @@ class ProfileScreen extends StatelessWidget {
               // const SizedBox(height: 16),
               GestureDetector(
                 onTap: () => _launchUrl(
-                  "https://play.google.com/store/apps/dev?id=8832237281097064209&hl=en_IN",
+                  "https://play.google.com/store/search?q=pub%3ALegendary%20Software%20Solutions&c=apps",
                 ),
                 child: _buildSettingsItem(
                   context,
