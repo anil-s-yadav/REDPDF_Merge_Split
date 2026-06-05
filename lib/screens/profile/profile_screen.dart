@@ -30,10 +30,7 @@ class ProfileScreen extends StatelessWidget {
           children: [
             Text(
               "A product by: ",
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 13,
-              ),
+              style: TextStyle(color: Colors.grey, fontSize: 13),
             ),
             Icon(Icons.picture_as_pdf, color: pdfTheme.splitPrimary),
             const SizedBox(width: 8),
@@ -48,7 +45,7 @@ class ProfileScreen extends StatelessWidget {
             const Spacer(),
             IconButton(
               onPressed: () => _launchUrl(
-                "https://play.google.com/store/apps/details?id=com.legendarysoftware.compress_pdf_redpdf",
+                'https://play.google.com/store/apps/details?id=com.legendarysoftware.marge_pdf_split_pdf',
               ),
               icon: Icon(Icons.star_border, color: Colors.orange),
             ),
@@ -59,6 +56,7 @@ class ProfileScreen extends StatelessWidget {
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
             horizontal: AppConstants.spacing24,
+            vertical: AppConstants.spacing24,
           ),
           child: Column(
             children: [
@@ -104,7 +102,9 @@ class ProfileScreen extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.15 : 0.1),
+                    color: const Color(
+                      0xFF8B5CF6,
+                    ).withValues(alpha: isDark ? 0.15 : 0.1),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: const Color(0xFF8B5CF6).withValues(alpha: 0.2),
@@ -113,7 +113,9 @@ class ProfileScreen extends StatelessWidget {
                   child: Text(
                     AppConstants.version,
                     style: TextStyle(
-                      color: isDark ? const Color(0xFFC4B5FD) : const Color(0xFF7C3AED),
+                      color: isDark
+                          ? const Color(0xFFC4B5FD)
+                          : const Color(0xFF7C3AED),
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
@@ -169,8 +171,9 @@ class ProfileScreen extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF6366F1)
-                    .withValues(alpha: isDark ? 0.15 : 0.08),
+                color: const Color(
+                  0xFF6366F1,
+                ).withValues(alpha: isDark ? 0.15 : 0.08),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -213,8 +216,7 @@ class ProfileScreen extends StatelessWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color:
-                            isDark ? Colors.white : const Color(0xFF312E81),
+                        color: isDark ? Colors.white : const Color(0xFF312E81),
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -286,11 +288,7 @@ class ProfileScreen extends StatelessWidget {
               color: accentColor.withValues(alpha: isDark ? 0.15 : 0.1),
               borderRadius: BorderRadius.circular(13),
             ),
-            child: Icon(
-              icon,
-              color: accentColor,
-              size: 22,
-            ),
+            child: Icon(icon, color: accentColor, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -328,8 +326,9 @@ class ProfileScreen extends StatelessWidget {
     ColorScheme colorScheme,
     bool isDark,
   ) {
-    final amberPrimary =
-        isDark ? const Color(0xFFFBBF24) : const Color(0xFFF59E0B);
+    final amberPrimary = isDark
+        ? const Color(0xFFFBBF24)
+        : const Color(0xFFF59E0B);
 
     return GestureDetector(
       onTap: () => _launchUrl(
@@ -354,13 +353,10 @@ class ProfileScreen extends StatelessWidget {
                   ],
           ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: amberPrimary.withValues(alpha: 0.25),
-          ),
+          border: Border.all(color: amberPrimary.withValues(alpha: 0.25)),
           boxShadow: [
             BoxShadow(
-              color:
-                  amberPrimary.withValues(alpha: isDark ? 0.1 : 0.08),
+              color: amberPrimary.withValues(alpha: isDark ? 0.1 : 0.08),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),

@@ -13,12 +13,21 @@ class RateUsDialog extends StatelessWidget {
   static const _playStoreUrl =
       'https://play.google.com/store/apps/details?id=com.legendarysoftware.marge_pdf_split_pdf';
 
-  /// Shows the dialog — call this after a successful operation.
+  /// Shows the review prompt — tries native in-app review first, then falls
+  /// back to the custom bottom-sheet dialog.
   static Future<void> showIfNeeded(BuildContext context) async {
     final shouldShow = await RateUsService.shouldShowRateDialog();
     if (!shouldShow) return;
     if (!context.mounted) return;
 
+    // Try native In-App Review first
+    if (await RateUsService.shouldTryNativeReview()) {
+      final shown = await RateUsService.requestInAppReview();
+      if (shown) return; // Native dialog was displayed
+    }
+
+    // Fallback: show our custom bottom-sheet dialog
+    if (!context.mounted) return;
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,

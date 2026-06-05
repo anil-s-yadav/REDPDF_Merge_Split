@@ -5,6 +5,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
 import '../../providers/pdf_provider.dart';
 import '../../models/pdf_models.dart';
+import '../../widgets/output_file_name_field.dart';
 import '../processing/processing_screen.dart';
 
 class SelectPdfScreen extends StatefulWidget {
@@ -125,6 +126,14 @@ class _SelectPdfScreenState extends State<SelectPdfScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add_circle_outline, color: pdfTheme.mergePrimary),
+            tooltip: 'Add more PDFs',
+            onPressed: () => _pickFiles(pdfProvider),
+          ),
+          SizedBox(width: 10),
+        ],
       ),
       body: Column(
         children: [
@@ -413,19 +422,10 @@ class _SelectPdfScreenState extends State<SelectPdfScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (canProcess)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: TextField(
-                controller: _fileNameController,
-                decoration: InputDecoration(
-                  labelText: 'Output File Name (Optional)',
-                  hintText: 'e.g. MyMergedPDF',
-                  prefixIcon: const Icon(Icons.edit_document),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              ),
+            OutputFileNameField(
+              controller: _fileNameController,
+              accentColor: pdfTheme.mergePrimary,
+              hintText: 'e.g. MyMergedPDF',
             ),
           ElevatedButton(
             onPressed: canProcess
@@ -468,7 +468,7 @@ class _SelectPdfScreenState extends State<SelectPdfScreen> {
               Icon(Icons.lock_outline, size: 14, color: Colors.grey),
               SizedBox(width: 4),
               Text(
-                'SECURE AND FAST PROCESSING',
+                'SECURE, OFFLINE AND FAST PROCESSING',
                 style: TextStyle(
                   color: Colors.grey,
                   fontSize: 10,

@@ -2,7 +2,7 @@ name: stitch
 description: "A new Flutter project."
 
 publish_to: "none"
-version: 1.1.14+14
+version: 1.2.15+15
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
@@ -31,6 +31,7 @@ dependencies:
     path: packages/pdf_manipulator
   pdfx: ^2.9.2
   url_launcher: ^6.3.2
+  in_app_review: ^2.0.10
 
 dev_dependencies:
   flutter_test:

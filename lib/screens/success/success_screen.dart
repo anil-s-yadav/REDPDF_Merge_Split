@@ -7,6 +7,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
 import '../../providers/pdf_provider.dart';
 import '../../widgets/rate_us_dialog.dart';
+import '../../services/rate_us_service.dart';
 import '../viewer/pdf_viewer_screen.dart';
 
 class SuccessScreen extends StatefulWidget {
@@ -22,12 +23,16 @@ class _SuccessScreenState extends State<SuccessScreen> {
   @override
   void initState() {
     super.initState();
-    // Show the rate-us dialog after the success animation finishes
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (mounted) {
-        RateUsDialog.showIfNeeded(context);
-      }
-    });
+    // Record task completion and show review prompt after success animation
+    _promptReviewAfterDelay();
+  }
+
+  Future<void> _promptReviewAfterDelay() async {
+    await RateUsService.recordTaskCompletion();
+    await Future.delayed(const Duration(milliseconds: 1500));
+    if (mounted) {
+      RateUsDialog.showIfNeeded(context);
+    }
   }
 
   bool get isSplit => widget.isSplit;
