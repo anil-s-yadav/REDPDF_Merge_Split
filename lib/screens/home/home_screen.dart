@@ -10,8 +10,7 @@ import '../../providers/user_provider.dart';
 import '../../providers/pdf_provider.dart';
 import '../../widgets/action_pill.dart';
 import '../../models/pdf_models.dart';
-import '../../permission/permission_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
+
 import '../split_pdf/split_pdf_screen.dart' show SplitPdfScreen;
 import '../viewer/pdf_viewer_screen.dart';
 import 'package:share_plus/share_plus.dart';
@@ -303,141 +302,24 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  Future<void> _showPermissionSettingsDialog(BuildContext context) async {
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Permission required'),
-        content: const Text(
-          'Storage permission is permanently denied. '
-          'Please enable it in system settings to manage PDFs on this device.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await openAppSettings();
-            },
-            child: const Text('Open Settings'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildFileList(
     List<PdfFile> files,
     PdfThemeExtension pdfTheme, {
     bool isHistory = false,
-    bool isSystem = false,
   }) {
-    final pdfProvider = context.read<PdfProvider>();
-    final permProv = context.watch<PermissionProvider>();
-
-    if (isSystem && !permProv.isStorageGranted) {
-      return Padding(
-        padding: const EdgeInsets.all(24),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.folder_shared_outlined,
-                size: 64,
-                color: Theme.of(
-                  context,
-                ).colorScheme.primary.withValues(alpha: 0.5),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Permission Required',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'To show all PDFs on your device, the app needs "All files access" permission.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () async {
-                  final status = await permProv.ensureStoragePermission();
-                  if (status.isGranted && mounted) {
-                    await context.read<PdfProvider>().refreshSystemFiles(
-                      forceRescan: true,
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 12,
-                  ),
-                ),
-                child: const Text('Grant Access'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (isSystem && pdfProvider.isScanningSystem) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text(
-              'Scanning storage for PDF files...',
-              style: TextStyle(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     if (files.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              isSystem ? 'No indexed files found.' : 'No items in history.',
+              'No items in history.',
               style: TextStyle(
                 color: Theme.of(
                   context,
                 ).colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
-            if (isSystem) ...[
-              const SizedBox(height: 12),
-              ElevatedButton.icon(
-                onPressed: () async {
-                  final status = await permProv.ensureStoragePermission();
-                  if (!mounted) return;
-                  if (status.isGranted) {
-                    await context.read<PdfProvider>().refreshSystemFiles(
-                      forceRescan: true,
-                    );
-                  } else if (status.isPermanentlyDenied) {
-                    await _showPermissionSettingsDialog(context);
-                  }
-                },
-                icon: const Icon(Icons.search),
-                label: const Text('Scan Now'),
-              ),
-            ],
           ],
         ),
       );
@@ -539,11 +421,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   );
                   if (ok == true && mounted) {
-                    await pdfProv.deleteFile(
-                      file,
-                      fromHistory: isHistory,
-                      fromSystem: isSystem,
-                    );
+                    await pdfProv.deleteFile(file, fromHistory: isHistory);
                   }
                 }
               },

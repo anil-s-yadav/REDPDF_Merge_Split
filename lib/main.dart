@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stitch/widgets/navigation.dart';
@@ -6,7 +5,6 @@ import 'core/theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/pdf_provider.dart';
-import 'permission/permission_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/select_pdf/select_pdf_screen.dart';
 import 'screens/success/success_screen.dart';
@@ -23,9 +21,6 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => PdfProvider()),
-        // ChangeNotifierProvider(create: (_) => PermissionProvider()),
-        if (!kIsWeb)
-          ChangeNotifierProvider(create: (_) => PermissionProvider()),
       ],
       child: const MainApp(),
     ),

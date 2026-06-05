@@ -7,7 +7,6 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/pdf_models.dart';
-import '../services/file_index_service.dart';
 import '../services/pdf_service.dart';
 
 class PdfProvider with ChangeNotifier {
@@ -17,29 +16,23 @@ class PdfProvider with ChangeNotifier {
 
   final List<PdfFile> _selectedFiles = [];
   final List<PdfFile> _history = [];
-  final List<PdfFile> _systemFiles = [];
 
   PdfJobResult? _lastResult;
   bool _isProcessing = false;
-  bool _isScanningSystem = false;
 
   String? _error;
   String? _processingMessage;
   DateTime _lastNotifyTime = DateTime.fromMillisecondsSinceEpoch(0);
 
   final PdfService _pdfService = PdfService();
-  final FileIndexService _fileIndexService = FileIndexService();
 
   static const _prefsHistoryKey = 'pdf_history_v1';
-  static const _prefsSystemKey = 'pdf_system_files_v1';
 
   List<PdfFile> get selectedFiles => List.unmodifiable(_selectedFiles);
   List<PdfFile> get history => List.unmodifiable(_history);
-  List<PdfFile> get systemFiles => List.unmodifiable(_systemFiles);
 
   PdfJobResult? get lastResult => _lastResult;
   bool get isProcessing => _isProcessing;
-  bool get isScanningSystem => _isScanningSystem;
 
   String? get error => _error;
   String? get processingMessage => _processingMessage;
@@ -60,29 +53,17 @@ class PdfProvider with ChangeNotifier {
   Future<void> _loadPersisted() async {
     final prefs = await SharedPreferences.getInstance();
     final historyRaw = prefs.getString(_prefsHistoryKey);
-    final systemRaw = prefs.getString(_prefsSystemKey);
 
     _history
       ..clear()
       ..addAll(
         historyRaw == null ? const [] : PdfJobResult.decodeFileList(historyRaw),
       );
-    _systemFiles
-      ..clear()
-      ..addAll(
-        systemRaw == null ? const [] : PdfJobResult.decodeFileList(systemRaw),
-      );
-
   }
 
   Future<void> _persist() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_prefsHistoryKey, PdfJobResult.encodeList(_history));
-    await prefs.setString(
-      _prefsSystemKey,
-      PdfJobResult.encodeList(_systemFiles),
-    );
-
   }
 
   void addFiles(List<PdfFile> files) {
@@ -116,37 +97,7 @@ class PdfProvider with ChangeNotifier {
     notifyListeners();
   }
 
-
-
-  Future<void> refreshSystemFiles({bool forceRescan = false}) async {
-    if (_isScanningSystem) return;
-    _error = null;
-
-    // If not forced and we already have files, don't scan immediately to avoid UI lag.
-    // However, we still want to scan if the user explicitly asks or if it's the first time.
-    if (_systemFiles.isNotEmpty && !forceRescan) return;
-
-    _isScanningSystem = true;
-    notifyListeners();
-    try {
-      debugPrint('Refreshing system files... forceRescan: $forceRescan');
-      final found = await _fileIndexService.indexPdfs();
-      _systemFiles.clear();
-      _systemFiles.addAll(found);
-      await _persist();
-    } catch (e) {
-      debugPrint('Error refreshing system files: $e');
-    } finally {
-      _isScanningSystem = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> deleteFile(
-    PdfFile file, {
-    bool fromHistory = false,
-    bool fromSystem = false,
-  }) async {
+  Future<void> deleteFile(PdfFile file, {bool fromHistory = false}) async {
     final path = file.path;
     if (path != null) {
       try {
@@ -161,11 +112,6 @@ class PdfProvider with ChangeNotifier {
 
     if (fromHistory) {
       _history.removeWhere((x) => x.path == file.path && x.name == file.name);
-    }
-    if (fromSystem) {
-      _systemFiles.removeWhere(
-        (x) => x.path == file.path && x.name == file.name,
-      );
     }
     await _persist();
     notifyListeners();
@@ -224,7 +170,8 @@ class PdfProvider with ChangeNotifier {
       rethrow;
     } on PlatformException catch (e) {
       final msg = e.message?.toLowerCase() ?? '';
-      if (msg.contains('pdf header not found') || msg.contains('empty or corrupted')) {
+      if (msg.contains('pdf header not found') ||
+          msg.contains('empty or corrupted')) {
         _error = 'One or more selected files are corrupted or not valid PDFs.';
       } else {
         _error = e.message ?? 'An unknown error occurred during processing.';
@@ -287,7 +234,8 @@ class PdfProvider with ChangeNotifier {
       rethrow;
     } on PlatformException catch (e) {
       final msg = e.message?.toLowerCase() ?? '';
-      if (msg.contains('pdf header not found') || msg.contains('empty or corrupted')) {
+      if (msg.contains('pdf header not found') ||
+          msg.contains('empty or corrupted')) {
         _error = 'The selected file is corrupted or not a valid PDF.';
       } else {
         _error = e.message ?? 'An unknown error occurred during processing.';
@@ -348,7 +296,8 @@ class PdfProvider with ChangeNotifier {
       rethrow;
     } on PlatformException catch (e) {
       final msg = e.message?.toLowerCase() ?? '';
-      if (msg.contains('pdf header not found') || msg.contains('empty or corrupted')) {
+      if (msg.contains('pdf header not found') ||
+          msg.contains('empty or corrupted')) {
         _error = 'The selected file is corrupted or not a valid PDF.';
       } else {
         _error = e.message ?? 'An unknown error occurred during processing.';
