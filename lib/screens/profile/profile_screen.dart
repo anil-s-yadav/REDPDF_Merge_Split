@@ -5,7 +5,6 @@ import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
 // import '../../providers/user_provider.dart';
 import '../../providers/theme_provider.dart';
-import '../../providers/pdf_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -21,9 +20,9 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // final userProvider = context.watch<UserProvider>();
     final themeProvider = context.watch<ThemeProvider>();
-    final pdfProvider = context.watch<PdfProvider>();
     final pdfTheme = Theme.of(context).extension<PdfThemeExtension>()!;
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -33,7 +32,6 @@ class ProfileScreen extends StatelessWidget {
               "A product by: ",
               style: TextStyle(
                 color: Colors.grey,
-                // fontWeight: FontWeight.bold,
                 fontSize: 13,
               ),
             ),
@@ -57,13 +55,6 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
       ),
-      // appBar: AppBar(
-      //   leading: IconButton(
-      //     icon: const Icon(Icons.arrow_back),
-      //     onPressed: () => Navigator.pop(context),
-      //   ),
-      //   title: const Text('Profile'),
-      // ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
@@ -71,33 +62,11 @@ class ProfileScreen extends StatelessWidget {
           ),
           child: Column(
             children: [
-              // const SizedBox(height: 16),
-              // ListTile(
-              //   leading: PremiumAvatar(
-              //     imageUrl: 'https://ui-avatars.com/api/?name=User',
-              //     isPremium: userProvider.isPremium,
-              //   ),
-              //   title: Text(
-              //     userProvider.name,
-              //     style: const TextStyle(
-              //       fontSize: 24,
-              //       fontWeight: FontWeight.bold,
-              //     ),
-              //   ),
-              //   subtitle: Text(
-              //     userProvider.email,
-              //     style: TextStyle(
-              //       color: colorScheme.onSurface.withValues(alpha: 0.6),
-              //     ),
-              //   ),
-              // ),
-
-              // const SizedBox(height: 35),
-              // _buildUpgradeCard(pdfTheme),
-              // const SizedBox(height: 30),
               _buildSettingsItem(
                 context,
                 colorScheme,
+                isDark: isDark,
+                accentColor: const Color(0xFF3B82F6),
                 icon: Icons.brightness_6,
                 title: 'App Theme',
                 subtitle:
@@ -107,33 +76,7 @@ class ProfileScreen extends StatelessWidget {
                   onChanged: (val) => themeProvider.toggleTheme(),
                 ),
               ),
-              // const SizedBox(height: 16),
-              _buildSettingsItem(
-                context,
-                colorScheme,
-                icon: Icons.visibility_off_outlined,
-                title: 'Show Hidden & Deleted pdf',
-                subtitle: 'Show deleted and hidden pdf files.',
-                trailing: Switch(
-                  value: pdfProvider.showHiddenFiles,
-                  onChanged: (val) => pdfProvider.toggleShowHiddenFiles(),
-                ),
-              ),
-              // const SizedBox(height: 16),
-              GestureDetector(
-                onTap: () => _launchUrl(
-                  "https://play.google.com/store/search?q=pub%3ALegendary%20Software%20Solutions&c=apps",
-                ),
-                child: _buildSettingsItem(
-                  context,
-                  colorScheme,
-                  icon: Icons.grid_view_rounded,
-                  title: 'Our Other Apps',
-                  trailing: const Icon(Icons.chevron_right),
-                ),
-              ),
-
-              // const SizedBox(height: 120),
+              _buildOurOtherAppsCard(context, pdfTheme, colorScheme, isDark),
               GestureDetector(
                 onTap: () => _launchUrl(
                   "https://anil-s-yadav.github.io/REDPDF-PrivacyPolicy/",
@@ -141,15 +84,18 @@ class ProfileScreen extends StatelessWidget {
                 child: _buildSettingsItem(
                   context,
                   colorScheme,
+                  isDark: isDark,
+                  accentColor: const Color(0xFF10B981),
                   icon: Icons.privacy_tip_outlined,
                   title: 'Privacy Policy',
                   trailing: const Icon(Icons.chevron_right),
                 ),
               ),
-              // const SizedBox(height: 12),
               _buildSettingsItem(
                 context,
                 colorScheme,
+                isDark: isDark,
+                accentColor: const Color(0xFF8B5CF6),
                 icon: Icons.info_outline,
                 title: 'Version Info',
                 trailing: Container(
@@ -158,13 +104,16 @@ class ProfileScreen extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(8),
+                    color: const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.15 : 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: const Color(0xFF8B5CF6).withValues(alpha: 0.2),
+                    ),
                   ),
                   child: Text(
                     AppConstants.version,
                     style: TextStyle(
-                      color: colorScheme.onSurfaceVariant,
+                      color: isDark ? const Color(0xFFC4B5FD) : const Color(0xFF7C3AED),
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
@@ -172,22 +121,8 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              _buildRatingCard(pdfTheme, colorScheme),
+              _buildRatingCard(context, pdfTheme, colorScheme, isDark),
               const SizedBox(height: 16),
-
-              // const SizedBox(height: 40),
-              // TextButton.icon(
-              //   onPressed: () {},
-              //   icon: const Icon(Icons.logout, color: Colors.red),
-              //   label: const Text(
-              //     'Logout',
-              //     style: TextStyle(
-              //       color: Colors.red,
-              //       fontWeight: FontWeight.bold,
-              //     ),
-              //   ),
-              // ),
-              // const SizedBox(height: 40),
             ],
           ),
         ),
@@ -195,122 +130,169 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // Widget _buildUpgradeCard(PdfThemeExtension pdfTheme) {
-  //   return Container(
-  //     padding: const EdgeInsets.all(AppConstants.spacing16),
-  //     decoration: BoxDecoration(
-  //       color: pdfTheme.goldLight.withAlpha(30),
-  //       borderRadius: BorderRadius.circular(AppConstants.borderRadius24),
-  //       border: Border.all(color: pdfTheme.gold.withValues(alpha: 0.3)),
-  //     ),
-  //     child: Row(
-  //       children: [
-  //         Expanded(
-  //           child: Column(
-  //             crossAxisAlignment: CrossAxisAlignment.start,
-  //             children: [
-  //               Text(
-  //                 'Upgrade to Family Plan',
-  //                 style: TextStyle(
-  //                   fontWeight: FontWeight.bold,
-  //                   fontSize: 18,
-  //                   color: pdfTheme.gold,
-  //                 ),
-  //               ),
-  //               Text(
-  //                 'Share premium features with up to 5 members',
-  //                 style: TextStyle(
-  //                   color: pdfTheme.gold.withValues(alpha: 2),
-  //                   fontSize: 13,
-  //                 ),
-  //               ),
-
-  //               const SizedBox(height: 10),
-  //               Container(
-  //                 padding: const EdgeInsets.symmetric(
-  //                   horizontal: 12,
-  //                   vertical: 6,
-  //                 ),
-  //                 decoration: BoxDecoration(
-  //                   color: pdfTheme.gold,
-  //                   borderRadius: BorderRadius.circular(30),
-  //                   boxShadow: [
-  //                     BoxShadow(
-  //                       color: pdfTheme.gold.withValues(alpha: 0.3),
-  //                       blurRadius: 10,
-  //                       offset: const Offset(0, 4),
-  //                     ),
-  //                   ],
-  //                 ),
-  //                 child: const Row(
-  //                   mainAxisSize: MainAxisSize.min,
-  //                   children: [
-  //                     Icon(Icons.stars, color: Colors.white, size: 20),
-  //                     SizedBox(width: 8),
-  //                     Text(
-  //                       'PREMIUM PLAN',
-  //                       style: TextStyle(
-  //                         color: Colors.white,
-  //                         fontWeight: FontWeight.bold,
-  //                       ),
-  //                     ),
-  //                   ],
-  //                 ),
-  //               ),
-  //               // ElevatedButton(
-  //   onPressed: () {},
-  //   style: ElevatedButton.styleFrom(
-  //     backgroundColor: pdfTheme.gold,
-  //     foregroundColor: Colors.white,
-  //     minimumSize: const Size(double.infinity, 40),
-  //     shape: RoundedRectangleBorder(
-  //       borderRadius: BorderRadius.circular(12),
-  //     ),
-  //   ),
-  //   child: const Text(
-  //     'Get premium',
-  //     style: TextStyle(fontWeight: FontWeight.bold),
-  //   ),
-  //               // ),
-  //             ],
-  //           ),
-  //         ),
-  //         const SizedBox(width: 16),
-  //         Icon(Icons.group_add, size: 30, color: pdfTheme.gold),
-  //       ],
-  //     ),
-  //   );
-  // }
+  // ── Our Other Apps – Premium Indigo Gradient Card ──
+  Widget _buildOurOtherAppsCard(
+    BuildContext context,
+    PdfThemeExtension pdfTheme,
+    ColorScheme colorScheme,
+    bool isDark,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: GestureDetector(
+        onTap: () => _launchUrl(
+          "https://play.google.com/store/search?q=pub%3ALegendary%20Software%20Solutions&c=apps",
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark
+                  ? [
+                      const Color(0xFF1A1040),
+                      const Color(0xFF0F2847),
+                      const Color(0xFF0B1929),
+                    ]
+                  : [
+                      const Color(0xFFEDE9FE),
+                      const Color(0xFFDBEAFE),
+                      const Color(0xFFE0E7FF),
+                    ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isDark
+                  ? const Color(0xFF6366F1).withValues(alpha: 0.3)
+                  : const Color(0xFF818CF8).withValues(alpha: 0.3),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF6366F1)
+                    .withValues(alpha: isDark ? 0.15 : 0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              // Gradient icon container
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF818CF8), Color(0xFF6366F1)],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF6366F1).withValues(alpha: 0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.apps_rounded,
+                  color: Colors.white,
+                  size: 26,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Our Other Apps',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color:
+                            isDark ? Colors.white : const Color(0xFF312E81),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Explore more from Legendary Software',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark
+                            ? const Color(0xFFA5B4FC)
+                            : const Color(0xFF6366F1),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Arrow button
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF6366F1).withValues(alpha: 0.2)
+                      : const Color(0xFF6366F1).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.arrow_forward_rounded,
+                  color: isDark
+                      ? const Color(0xFFA5B4FC)
+                      : const Color(0xFF6366F1),
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildSettingsItem(
     BuildContext context,
     ColorScheme colorScheme, {
+    required bool isDark,
+    required Color accentColor,
     required IconData icon,
     required String title,
     String? subtitle,
     required Widget trailing,
   }) {
     return Container(
-      padding: const EdgeInsets.all(8),
-      margin: EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
+        color: isDark
+            ? colorScheme.surface.withValues(alpha: 0.7)
+            : colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: accentColor.withValues(alpha: isDark ? 0.15 : 0.12),
+        ),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            width: 46,
+            height: 46,
             decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
+              color: accentColor.withValues(alpha: isDark ? 0.15 : 0.1),
+              borderRadius: BorderRadius.circular(13),
             ),
             child: Icon(
               icon,
-              color: colorScheme.onSurface.withValues(alpha: 0.6),
+              color: accentColor,
+              size: 22,
             ),
           ),
-          // const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -326,7 +308,7 @@ class ProfileScreen extends StatelessWidget {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                      color: accentColor.withValues(alpha: 0.7),
                       fontSize: 13,
                     ),
                   ),
@@ -339,55 +321,135 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRatingCard(PdfThemeExtension pdfTheme, ColorScheme colorScheme) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: pdfTheme.mergeContainer.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: pdfTheme.mergePrimary.withValues(alpha: 0.1)),
+  // ── Rate Us – Premium Amber/Gold Gradient Card ──
+  Widget _buildRatingCard(
+    BuildContext context,
+    PdfThemeExtension pdfTheme,
+    ColorScheme colorScheme,
+    bool isDark,
+  ) {
+    final amberPrimary =
+        isDark ? const Color(0xFFFBBF24) : const Color(0xFFF59E0B);
+
+    return GestureDetector(
+      onTap: () => _launchUrl(
+        'https://play.google.com/store/apps/details?id=com.legendarysoftware.marge_pdf_split_pdf',
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: pdfTheme.mergePrimary,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.star, color: Colors.white),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [
+                    const Color(0xFF1C1508),
+                    const Color(0xFF1A1204),
+                    const Color(0xFF171002),
+                  ]
+                : [
+                    const Color(0xFFFFFBEB),
+                    const Color(0xFFFEF3C7),
+                    const Color(0xFFFDE68A).withValues(alpha: 0.4),
+                  ],
           ),
-          const SizedBox(width: 16),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Enjoying PDF Master?',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  'Rate us on the store',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
-            ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: amberPrimary.withValues(alpha: 0.25),
           ),
-          ElevatedButton(
-            onPressed: () => _launchUrl(
-              'https://play.google.com/store/apps/details?id=com.legendarysoftware.marge_pdf_split_pdf',
+          boxShadow: [
+            BoxShadow(
+              color:
+                  amberPrimary.withValues(alpha: isDark ? 0.1 : 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: pdfTheme.mergePrimary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+          ],
+        ),
+        child: Column(
+          children: [
+            // Five-star row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: Icon(
+                    Icons.star_rounded,
+                    color: amberPrimary,
+                    size: 28,
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              'Enjoying RedPDF?',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: isDark ? Colors.white : const Color(0xFF78350F),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 20),
             ),
-            child: const Text('Rate Us'),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              'Your review helps us improve and reach more users!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark
+                    ? const Color(0xFFFCD34D).withValues(alpha: 0.7)
+                    : const Color(0xFF92400E).withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Full-width CTA button with glow
+            Container(
+              width: double.infinity,
+              height: 48,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [const Color(0xFFF59E0B), const Color(0xFFEAB308)]
+                      : [const Color(0xFFF59E0B), const Color(0xFFD97706)],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: amberPrimary.withValues(alpha: 0.35),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: () => _launchUrl(
+                    'https://play.google.com/store/apps/details?id=com.legendarysoftware.marge_pdf_split_pdf',
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.star_rounded, color: Colors.white, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Rate Us on Play Store',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

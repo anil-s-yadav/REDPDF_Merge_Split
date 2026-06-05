@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import '../models/pdf_models.dart';
 
 class FileIndexService {
-  Future<List<PdfFile>> indexPdfs({bool showHidden = false}) async {
+  Future<List<PdfFile>> indexPdfs() async {
     final seen = <String>{};
     final results = <PdfFile>[];
 
@@ -46,7 +46,6 @@ class FileIndexService {
               seen,
               results,
               recursive: true,
-              showHidden: showHidden,
             );
           }
         }
@@ -73,15 +72,11 @@ class FileIndexService {
                 name == 'Music') {
               continue;
             }
-            if (!showHidden) {
-              if (name.startsWith('.') ||
-                  name == 'Android' ||
-                  name.toLowerCase().contains('trash') ||
-                  name.toLowerCase().contains('trashed')) {
-                continue;
-              }
-            } else {
-              if (name == 'Android') continue;
+            if (name.startsWith('.') ||
+                name == 'Android' ||
+                name.toLowerCase().contains('trash') ||
+                name.toLowerCase().contains('trashed')) {
+              continue;
             }
 
             if (!seen.contains(entity.path)) {
@@ -91,7 +86,6 @@ class FileIndexService {
                 seen,
                 results,
                 recursive: true,
-                showHidden: showHidden,
               );
             }
           }
@@ -121,7 +115,7 @@ class FileIndexService {
 
       for (final root in roots) {
         if (!await root.exists()) continue;
-        await _scanDirectory(root, seen, results, showHidden: showHidden);
+        await _scanDirectory(root, seen, results);
       }
     }
 
@@ -134,19 +128,16 @@ class FileIndexService {
   Future<void> _addPdfFile(
     File file,
     List<PdfFile> results,
-    Set<String> seen, {
-    bool showHidden = false,
-  }) async {
+    Set<String> seen,
+  ) async {
     try {
       final path = file.path;
       final name = p.basename(path);
 
-      if (!showHidden) {
-        if (name.startsWith('.') ||
-            path.toLowerCase().contains('/.trash') ||
-            path.toLowerCase().contains('/.trashed')) {
-          return;
-        }
+      if (name.startsWith('.') ||
+          path.toLowerCase().contains('/.trash') ||
+          path.toLowerCase().contains('/.trashed')) {
+        return;
       }
 
       seen.add(path);
@@ -171,7 +162,6 @@ class FileIndexService {
     Set<String> seen,
     List<PdfFile> results, {
     bool recursive = true,
-    bool showHidden = false,
   }) async {
     try {
       // Use lister to get files in this directory
@@ -185,18 +175,16 @@ class FileIndexService {
             final path = entity.path;
             if (p.extension(path).toLowerCase() == '.pdf' &&
                 !seen.contains(path)) {
-              await _addPdfFile(entity, results, seen, showHidden: showHidden);
+              await _addPdfFile(entity, results, seen);
             }
           } else if (entity is Directory && recursive) {
             final path = entity.path;
             final name = p.basename(path);
 
-            if (!showHidden) {
-              if (name.startsWith('.') ||
-                  name.toLowerCase().contains('trash') ||
-                  name.toLowerCase().contains('trashed')) {
-                continue;
-              }
+            if (name.startsWith('.') ||
+                name.toLowerCase().contains('trash') ||
+                name.toLowerCase().contains('trashed')) {
+              continue;
             }
             if (name == 'data' || name == 'obb' || name == 'Android') continue;
 
@@ -207,7 +195,6 @@ class FileIndexService {
                 seen,
                 results,
                 recursive: true,
-                showHidden: showHidden,
               );
             }
           }

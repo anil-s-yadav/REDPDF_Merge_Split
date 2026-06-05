@@ -22,7 +22,7 @@ class PdfProvider with ChangeNotifier {
   PdfJobResult? _lastResult;
   bool _isProcessing = false;
   bool _isScanningSystem = false;
-  bool _showHiddenFiles = false;
+
   String? _error;
   String? _processingMessage;
   DateTime _lastNotifyTime = DateTime.fromMillisecondsSinceEpoch(0);
@@ -40,7 +40,7 @@ class PdfProvider with ChangeNotifier {
   PdfJobResult? get lastResult => _lastResult;
   bool get isProcessing => _isProcessing;
   bool get isScanningSystem => _isScanningSystem;
-  bool get showHiddenFiles => _showHiddenFiles;
+
   String? get error => _error;
   String? get processingMessage => _processingMessage;
 
@@ -72,7 +72,7 @@ class PdfProvider with ChangeNotifier {
       ..addAll(
         systemRaw == null ? const [] : PdfJobResult.decodeFileList(systemRaw),
       );
-    _showHiddenFiles = prefs.getBool('show_hidden_files') ?? false;
+
   }
 
   Future<void> _persist() async {
@@ -82,7 +82,7 @@ class PdfProvider with ChangeNotifier {
       _prefsSystemKey,
       PdfJobResult.encodeList(_systemFiles),
     );
-    await prefs.setBool('show_hidden_files', _showHiddenFiles);
+
   }
 
   void addFiles(List<PdfFile> files) {
@@ -116,12 +116,7 @@ class PdfProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleShowHiddenFiles() {
-    _showHiddenFiles = !_showHiddenFiles;
-    _persist();
-    notifyListeners();
-    refreshSystemFiles(forceRescan: true);
-  }
+
 
   Future<void> refreshSystemFiles({bool forceRescan = false}) async {
     if (_isScanningSystem) return;
@@ -135,9 +130,7 @@ class PdfProvider with ChangeNotifier {
     notifyListeners();
     try {
       debugPrint('Refreshing system files... forceRescan: $forceRescan');
-      final found = await _fileIndexService.indexPdfs(
-        showHidden: _showHiddenFiles,
-      );
+      final found = await _fileIndexService.indexPdfs();
       _systemFiles.clear();
       _systemFiles.addAll(found);
       await _persist();
