@@ -14,8 +14,35 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.IOException
 import android.util.Log
+
+/**
+ * Copies a URI (file:// or content://) to a destination File.
+ * For file:// URIs, uses direct File I/O to avoid ContentResolver issues on Android 10-12.
+ * For content:// URIs, uses ContentResolver.openInputStream().
+ */
+private fun copyUriToFile(sourceUri: Uri, destFile: File, contentResolver: ContentResolver) {
+    if (sourceUri.scheme == "file") {
+        // Direct file copy — reliable on all Android versions
+        val sourceFile = File(sourceUri.path!!)
+        if (!sourceFile.exists()) {
+            throw IOException("Source file does not exist: ${sourceUri.path}")
+        }
+        sourceFile.copyTo(destFile, overwrite = true)
+    } else {
+        // content:// URI — must use ContentResolver
+        val inputStream = contentResolver.openInputStream(sourceUri)
+            ?: throw IOException("Cannot open input stream for URI: $sourceUri")
+        inputStream.use { input ->
+            FileOutputStream(destFile).use { output ->
+                input.copyTo(output)
+            }
+        }
+    }
+}
 
 // For merging multiple pdf files.
 // For merging multiple pdf files.
@@ -55,7 +82,9 @@ suspend fun getMergedPDFPath(
                 yield()
                 val tempCheckFile = File.createTempFile("tagCheck_$index", ".pdf")
                 try {
-                    utils.copyDataFromSourceToDestDocument(uri, tempCheckFile.toUri(), contentResolver)
+                    // FIX: Use direct file copy for file:// URIs to avoid
+                    // ContentResolver issues on Android 10-12
+                    copyUriToFile(uri, tempCheckFile, contentResolver)
                     if (tempCheckFile.length() == 0L) {
                         throw IOException("Source file at index $index is empty or inaccessible: $uri")
                     }
@@ -91,7 +120,8 @@ suspend fun getMergedPDFPath(
             val firstUri = tempListOfUrisForFilesToMerge[0]
             val parentTempFile = File.createTempFile("mergeParent", ".pdf")
             try {
-                utils.copyDataFromSourceToDestDocument(firstUri, parentTempFile.toUri(), contentResolver)
+                // FIX: Use direct file copy for file:// URIs
+                copyUriToFile(firstUri, parentTempFile, contentResolver)
                 if (parentTempFile.length() == 0L) {
                     throw IOException("Failed to copy first file for merge: $firstUri")
                 }
@@ -108,7 +138,8 @@ suspend fun getMergedPDFPath(
                             val nextUri = tempListOfUrisForFilesToMerge[i]
                             val nextTempFile = File.createTempFile("mergeNext_$i", ".pdf")
                             try {
-                                utils.copyDataFromSourceToDestDocument(nextUri, nextTempFile.toUri(), contentResolver)
+                                // FIX: Use direct file copy for file:// URIs
+                                copyUriToFile(nextUri, nextTempFile, contentResolver)
                                 if (nextTempFile.length() == 0L) {
                                     throw IOException("Failed to copy file at index $i for merge: $nextUri")
                                 }

@@ -40,21 +40,26 @@ class Utils {
         var outputStream: OutputStream? = null
 
         try {
-            inputStream = contentResolver.openInputStream(sourceFileUri)
-            if (inputStream == null && sourceFileUri.scheme == "file") {
-                // Fallback for direct file access if content resolver fails on some devices
+            // FIX: On Android 10-12, contentResolver.openInputStream() fails silently
+            // for file:// URIs due to scoped storage, returning a null or broken stream.
+            // Always use direct FileInputStream for file:// URIs to ensure reliable reads.
+            if (sourceFileUri.scheme == "file") {
                 val path = sourceFileUri.path
                 if (path != null) {
                     inputStream = FileInputStream(path)
                 }
+            } else {
+                inputStream = contentResolver.openInputStream(sourceFileUri)
             }
 
-            outputStream = contentResolver.openOutputStream(destinationFileUri)
-            if (outputStream == null && destinationFileUri.scheme == "file") {
+            // Similarly, use direct FileOutputStream for file:// destination URIs.
+            if (destinationFileUri.scheme == "file") {
                 val path = destinationFileUri.path
                 if (path != null) {
                     outputStream = FileOutputStream(path)
                 }
+            } else {
+                outputStream = contentResolver.openOutputStream(destinationFileUri)
             }
 
             if (inputStream != null && outputStream != null) {

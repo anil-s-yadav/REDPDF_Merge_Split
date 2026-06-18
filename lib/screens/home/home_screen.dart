@@ -153,35 +153,38 @@ class _HomeScreenState extends State<HomeScreen>
     UserProvider user,
     ColorScheme colorScheme,
   ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'RedPdf - Merge and Split',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.75),
-                fontWeight: FontWeight.bold,
+    return FittedBox(
+      child: Row(
+        spacing: 20,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'RedPdf - Merge and Split',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.75),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Combine or split your PDF files with ease. ',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
-        ),
-        // GestureDetector(
-        //   onTap: () => Navigator.pushNamed(context, '/upgrade'),
-        //   child: PremiumAvatar(
-        //     imageUrl: 'https://ui-avatars.com/api/?name=User',
-        //     isPremium: user.isPremium,
-        //     // size: 50,
-        //   ),
-        // ),
-      ],
+              const SizedBox(height: 4),
+              Text(
+                'Combine or split your PDF files with ease. ',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
+          // GestureDetector(
+          //   onTap: () => Navigator.pushNamed(context, '/upgrade'),
+          //   child: PremiumAvatar(
+          //     imageUrl: 'https://ui-avatars.com/api/?name=User',
+          //     isPremium: user.isPremium,
+          //     // size: 50,
+          //   ),
+          // ),
+        ],
+      ),
     );
   }
 

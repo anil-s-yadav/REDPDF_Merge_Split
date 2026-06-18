@@ -21,11 +21,12 @@ class ActionPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          height: 160,
+          height: (size.height * 0.22 > 160) ? size.height * 0.22 : 160,
           decoration: BoxDecoration(
             color: backgroundColor,
             border: Border.all(color: textColor.withAlpha(80), width: 0.5),

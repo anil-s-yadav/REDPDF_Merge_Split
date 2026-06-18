@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class PlatformService {
@@ -25,7 +26,9 @@ class PlatformService {
       });
       return result;
     } catch (e) {
-      return null;
+      debugPrint('PlatformService.saveToDownloads failed: $e');
+      rethrow;
     }
   }
 }
+

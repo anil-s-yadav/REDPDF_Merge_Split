@@ -10,6 +10,16 @@ import '../models/pdf_models.dart';
 import 'platform_service.dart';
 
 class PdfService {
+  String _getFormattedDateTime() {
+    final now = DateTime.now();
+    String twoDigits(int n) => n >= 10 ? "$n" : "0$n";
+    return "${now.year}"
+        "${twoDigits(now.month)}"
+        "${twoDigits(now.day)}"
+        "${twoDigits(now.hour)}"
+        "${twoDigits(now.minute)}";
+  }
+
   void cancel() {
     try {
       PdfManipulator().cancelManipulations();
@@ -23,7 +33,7 @@ class PdfService {
     String? customFileName,
   }) async {
     final outDir = await _ensureOutputDir();
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final timestamp = _getFormattedDateTime();
     final fileName = (customFileName != null && customFileName.isNotEmpty)
         ? (customFileName.toLowerCase().endsWith('.pdf') ? customFileName : '$customFileName.pdf')
         : 'RedPdf_merge_$timestamp.pdf';
@@ -135,7 +145,7 @@ class PdfService {
       final isSinglePage = range.from == range.to;
       final int pagesInThisRange = range.to - range.from + 1;
 
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final timestamp = _getFormattedDateTime();
       final uniqueSuffix = uniqueRanges.length > 1 ? '_${i + 1}' : '';
       final baseName = (customFileName != null && customFileName.isNotEmpty)
           ? customFileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '')
@@ -194,7 +204,7 @@ class PdfService {
       throw ArgumentError('No valid pages specified for extraction.');
     }
 
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final timestamp = _getFormattedDateTime();
     
     String fileName;
     if (customFileName != null && customFileName.isNotEmpty) {
@@ -347,13 +357,10 @@ class PdfService {
 
   Future<Directory> _ensureOutputDir() async {
     if (Platform.isAndroid) {
-      try {
-        final downloadDir = Directory('/storage/emulated/0/Download/RedPdf');
-        if (!await downloadDir.exists()) {
-          await downloadDir.create(recursive: true);
-        }
-        return downloadDir;
-      } catch (_) {}
+      // NOTE: Do NOT attempt /storage/emulated/0/Download/RedPdf directly —
+      // it requires WRITE_EXTERNAL_STORAGE which causes Play Store rejection.
+      // Instead, use app-specific external dir (no permission needed) and
+      // rely on MediaStore (saveToDownloads) to put a copy in public Downloads.
 
       // Use app-specific external directory which doesn't require storage permissions
       try {
@@ -390,12 +397,37 @@ class PdfService {
 
   Future<String> _safeCopy(String tempPath, Directory outDir, String fileName) async {
     if (Platform.isAndroid) {
-      final mediaStoreUri = await PlatformService.saveToDownloads(tempPath, fileName);
-      if (mediaStoreUri != null) {
-        // Return a virtual path or the URI so it can be passed around.
-        // It might not be readable via standard File API on Android 10+ if it's a content:// URI.
-        return mediaStoreUri;
+      // First, always save a local copy in app-specific storage for in-app use
+      // (viewing, sharing, etc.) — this path is always accessible without permissions.
+      String localPath = p.join(outDir.path, fileName);
+      try {
+        await File(tempPath).copy(localPath);
+      } catch (_) {
+        // If copy fails, try reading and writing bytes directly
+        try {
+          final bytes = await File(tempPath).readAsBytes();
+          await File(localPath).writeAsBytes(bytes);
+        } catch (_) {
+          // Last resort: use application documents directory
+          final appDir = await getApplicationDocumentsDirectory();
+          localPath = p.join(appDir.path, fileName);
+          final bytes = await File(tempPath).readAsBytes();
+          await File(localPath).writeAsBytes(bytes);
+        }
       }
+
+      // Then, also save to public Downloads via MediaStore.
+      // This makes the file visible in the user's Downloads folder.
+      // Use localPath (already saved app-specific copy) as the source, since the
+      // native temp file might not be accessible on some Android 10-12 devices.
+      try {
+        await PlatformService.saveToDownloads(localPath, fileName);
+      } catch (e) {
+        debugPrint('saveToDownloads failed (file still in app storage): $e');
+      }
+
+      // Return the local app-specific path which is always readable
+      return localPath;
     }
     
     String outPath = p.join(outDir.path, fileName);
@@ -403,20 +435,6 @@ class PdfService {
       await File(tempPath).copy(outPath);
       return outPath;
     } catch (e) {
-      if (Platform.isAndroid) {
-        // Fallback to application documents directory
-        final appDir = await getApplicationDocumentsDirectory();
-        final fallbackPath = p.join(appDir.path, fileName);
-        try {
-          await File(tempPath).copy(fallbackPath);
-          return fallbackPath;
-        } catch (_) {
-          // If copy still fails, try reading and writing bytes directly
-          final bytes = await File(tempPath).readAsBytes();
-          await File(fallbackPath).writeAsBytes(bytes);
-          return fallbackPath;
-        }
-      }
       rethrow;
     }
   }

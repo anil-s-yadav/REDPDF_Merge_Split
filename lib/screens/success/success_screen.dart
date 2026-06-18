@@ -59,21 +59,23 @@ class _SuccessScreenState extends State<SuccessScreen> {
             SizedBox(height: size.height * 0.03),
             _buildSuccessAnimation(isSplit, pdfTheme),
             SizedBox(height: size.height * 0.03),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  isSplit
-                      ? 'PDF Successfully Split'
-                      : 'PDF Successfully Merged',
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+            FittedBox(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    isSplit
+                        ? 'PDF Successfully Split'
+                        : 'PDF Successfully Merged',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Icon(Icons.stars, color: pdfTheme.gold, size: 24),
-              ],
+                  const SizedBox(width: 8),
+                  Icon(Icons.stars, color: pdfTheme.gold, size: 24),
+                ],
+              ),
             ),
             SizedBox(height: size.height * 0.01),
             Text(
@@ -420,7 +422,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('File is saved to Downloads/RedPdf'),
+                      content: Text('File is saved to Downloads'),
                     ),
                   );
                 }
