@@ -34,7 +34,7 @@ android {
 
     defaultConfig {
         applicationId = "com.deepanshuchaudhary.pdf_manipulator_example"
-        minSdk = 21
+        minSdk = flutter.minSdkVersion
         targetSdk = 35
         versionCode = flutterVersionCode.toInt()
         versionName = flutterVersionName

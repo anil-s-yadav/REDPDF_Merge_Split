@@ -455,7 +455,7 @@ class PDFWatermarkParams {
       'watermarkLayer': watermarkLayer.toString(),
       'opacity': opacity,
       'rotationAngle': rotationAngle,
-      'watermarkColor': '#${watermarkColor.value.toRadixString(16)}',
+      'watermarkColor': '#${watermarkColor.toARGB32().toRadixString(16)}',
       'positionType': positionType.toString(),
     };
   }

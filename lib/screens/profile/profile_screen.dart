@@ -26,37 +26,35 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Text(
-              "A product by: ",
-              style: TextStyle(color: Colors.grey, fontSize: 13),
-            ),
-            Icon(Icons.picture_as_pdf, color: pdfTheme.splitPrimary),
-            const SizedBox(width: 8),
-            Text(
-              "RedPDF",
-              style: TextStyle(
-                color: pdfTheme.splitPrimary,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
+        title: GestureDetector(
+          onTap: () => _launchUrl(
+            "https://play.google.com/store/apps/dev?id=8832237281097064209",
+          ),
+          child: Row(
+            children: [
+              Text(
+                "A product by:  ",
+                style: TextStyle(color: Colors.grey, fontSize: 13),
               ),
-            ),
-            const Spacer(),
-            IconButton(
-              onPressed: () => _launchUrl(
-                'https://play.google.com/store/apps/details?id=com.legendarysoftware.marge_pdf_split_pdf',
+              // Icon(Icons.picture_as_pdf, color: color.danger),
+              Image.asset("lib/assets/google-play-store-icon.png", height: 20),
+              // const SizedBox(width: 8),
+              Text(
+                " RedPDF",
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
-              icon: Icon(Icons.star_border, color: Colors.orange),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
             horizontal: AppConstants.spacing24,
-            vertical: AppConstants.spacing24,
           ),
           child: Column(
             children: [
@@ -74,7 +72,7 @@ class ProfileScreen extends StatelessWidget {
                   onChanged: (val) => themeProvider.toggleTheme(),
                 ),
               ),
-              _buildOurOtherAppsCard(context, pdfTheme, colorScheme, isDark),
+
               GestureDetector(
                 onTap: () => _launchUrl(
                   "https://anil-s-yadav.github.io/REDPDF-PrivacyPolicy/",
@@ -122,6 +120,8 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
               ),
+
+              _buildOurOtherAppsCard(context, pdfTheme, colorScheme, isDark),
               const SizedBox(height: 8),
               _buildRatingCard(context, pdfTheme, colorScheme, isDark),
               const SizedBox(height: 16),
@@ -143,7 +143,7 @@ class ProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: GestureDetector(
         onTap: () => _launchUrl(
-          "https://play.google.com/store/search?q=pub%3ALegendary%20Software%20Solutions&c=apps",
+          "https://play.google.com/store/apps/dev?id=8832237281097064209",
         ),
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -185,11 +185,15 @@ class ProfileScreen extends StatelessWidget {
               Container(
                 width: 52,
                 height: 52,
+                padding: EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF818CF8), Color(0xFF6366F1)],
+                    colors: [
+                      Color.fromARGB(255, 237, 238, 250),
+                      Color.fromARGB(255, 168, 170, 247),
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
@@ -200,10 +204,9 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.apps_rounded,
-                  color: Colors.white,
-                  size: 26,
+                child: Image.asset(
+                  "lib/assets/google-play-store-icon.png",
+                  // height: 1s0,
                 ),
               ),
               const SizedBox(width: 14),
@@ -211,17 +214,32 @@ class ProfileScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Our Other Apps',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: isDark ? Colors.white : const Color(0xFF312E81),
-                      ),
+                    Row(
+                      spacing: 8,
+                      children: [
+                        Text(
+                          'Our Other Apps',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF312E81),
+                          ),
+                        ),
+                        Text(
+                          'REDPDF',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Explore more from Legendary Software',
+                      "• More Tools from Redpdf",
                       style: TextStyle(
                         fontSize: 12,
                         color: isDark
