@@ -23,7 +23,10 @@ class _NavigationPageState extends State<NavigationPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _pages,
+      ),
       extendBody: true,
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(left: 60, right: 60, bottom: 24),

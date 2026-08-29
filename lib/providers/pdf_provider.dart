@@ -27,6 +27,7 @@ class PdfProvider with ChangeNotifier {
   final PdfService _pdfService = PdfService();
 
   static const _prefsHistoryKey = 'pdf_history_v1';
+  static final DateFormat _dateFormat = DateFormat('MMM d');
 
   List<PdfFile> get selectedFiles => List.unmodifiable(_selectedFiles);
   List<PdfFile> get history => List.unmodifiable(_history);
@@ -150,7 +151,7 @@ class PdfProvider with ChangeNotifier {
         },
       );
 
-      final now = DateFormat('MMM d').format(DateTime.now());
+      final now = _dateFormat.format(DateTime.now());
       final size = await _pdfService.humanSize(output);
       final historyItem = PdfFile(
         name: output.split(Platform.pathSeparator).last,
@@ -208,7 +209,7 @@ class PdfProvider with ChangeNotifier {
         },
       );
 
-      final now = DateFormat('MMM d').format(DateTime.now());
+      final now = _dateFormat.format(DateTime.now());
       final size = result.zipPath != null
           ? await _pdfService.humanSize(result.zipPath!)
           : '—';
@@ -274,7 +275,7 @@ class PdfProvider with ChangeNotifier {
         },
       );
 
-      final now = DateFormat('MMM d').format(DateTime.now());
+      final now = _dateFormat.format(DateTime.now());
       final size = await _pdfService.humanSize(result.outputPath!);
 
       _history.insert(

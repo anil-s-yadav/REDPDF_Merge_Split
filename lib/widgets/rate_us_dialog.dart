@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../core/constants/app_constants.dart';
 import '../services/rate_us_service.dart';
 
 /// A beautiful bottom-sheet style rating dialog with 3 options:
@@ -9,9 +10,6 @@ import '../services/rate_us_service.dart';
 /// 3. "Don't Ask Again" (forever dismiss)
 class RateUsDialog extends StatelessWidget {
   const RateUsDialog({super.key});
-
-  static const _playStoreUrl =
-      'https://play.google.com/store/apps/details?id=com.legendarysoftware.marge_pdf_split_pdf';
 
   /// Shows the review prompt — tries native in-app review first, then falls
   /// back to the custom bottom-sheet dialog.
@@ -37,7 +35,7 @@ class RateUsDialog extends StatelessWidget {
   }
 
   Future<void> _openPlayStore() async {
-    final uri = Uri.parse(_playStoreUrl);
+    final uri = Uri.parse(AppConstants.playStoreUrl);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }

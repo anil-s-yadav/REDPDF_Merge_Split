@@ -11,9 +11,11 @@ class ProfileScreen extends StatelessWidget {
 
   Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
-    if (!await launchUrl(uri)) {
-      throw Exception('Could not launch $uri');
-    }
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {}
   }
 
   @override
@@ -27,17 +29,22 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: GestureDetector(
-          onTap: () => _launchUrl(
-            "https://play.google.com/store/apps/dev?id=8832237281097064209",
-          ),
+          onTap: () => _launchUrl(AppConstants.developerStoreUrl),
           child: Row(
             children: [
               Text(
                 "A product by:  ",
                 style: TextStyle(color: Colors.grey, fontSize: 13),
               ),
-              // Icon(Icons.picture_as_pdf, color: color.danger),
-              Image.asset("lib/assets/google-play-store-icon.png", height: 20),
+              Image.asset(
+                AppConstants.googlePlayIconAsset,
+                height: 20,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.shop,
+                  size: 20,
+                  color: Colors.grey,
+                ),
+              ),
               // const SizedBox(width: 8),
               Text(
                 " RedPDF",
@@ -74,9 +81,7 @@ class ProfileScreen extends StatelessWidget {
               ),
 
               GestureDetector(
-                onTap: () => _launchUrl(
-                  "https://anil-s-yadav.github.io/REDPDF-PrivacyPolicy/",
-                ),
+                onTap: () => _launchUrl(AppConstants.privacyPolicyUrl),
                 child: _buildSettingsItem(
                   context,
                   colorScheme,
@@ -142,9 +147,7 @@ class ProfileScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: GestureDetector(
-        onTap: () => _launchUrl(
-          "https://play.google.com/store/apps/dev?id=8832237281097064209",
-        ),
+        onTap: () => _launchUrl(AppConstants.developerStoreUrl),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -205,8 +208,12 @@ class ProfileScreen extends StatelessWidget {
                   ],
                 ),
                 child: Image.asset(
-                  "lib/assets/google-play-store-icon.png",
-                  // height: 1s0,
+                  AppConstants.googlePlayIconAsset,
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.shop,
+                    size: 20,
+                    color: Colors.grey,
+                  ),
                 ),
               ),
               const SizedBox(width: 14),
@@ -349,9 +356,7 @@ class ProfileScreen extends StatelessWidget {
         : const Color(0xFFF59E0B);
 
     return GestureDetector(
-      onTap: () => _launchUrl(
-        'https://play.google.com/store/apps/details?id=com.legendarysoftware.marge_pdf_split_pdf',
-      ),
+      onTap: () => _launchUrl(AppConstants.playStoreUrl),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -440,9 +445,7 @@ class ProfileScreen extends StatelessWidget {
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(14),
-                  onTap: () => _launchUrl(
-                    'https://play.google.com/store/apps/details?id=com.legendarysoftware.marge_pdf_split_pdf',
-                  ),
+                  onTap: () => _launchUrl(AppConstants.playStoreUrl),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

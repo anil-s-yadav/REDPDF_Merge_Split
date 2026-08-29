@@ -1189,8 +1189,9 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
     setState(() => _isLoadingThumbnails = true);
     for (var i = 1; i <= _pageCount!; i++) {
       if (!mounted) break;
+      pdfx.PdfPage? page;
       try {
-        final page = await _pdfDocument!.getPage(i);
+        page = await _pdfDocument!.getPage(i);
 
         // We render at a small resolution
         final renderResult = await page.render(
@@ -1204,9 +1205,10 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
             _thumbnails[i] = renderResult.bytes;
           });
         }
-        await page.close();
       } catch (_) {
         // ignore individual page render errors
+      } finally {
+        await page?.close();
       }
     }
     if (mounted) setState(() => _isLoadingThumbnails = false);

@@ -16,14 +16,19 @@ class PdfViewerScreen extends StatefulWidget {
 
 class _PdfViewerScreenState extends State<PdfViewerScreen> {
   bool _isReady = false;
+  bool _fileExists = false;
+  late final File _file;
 
   @override
   void initState() {
     super.initState();
+    _file = File(widget.path);
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 300), () {
+      Future.delayed(const Duration(milliseconds: 300), () async {
+        final exists = await _file.exists();
         if (mounted) {
           setState(() {
+            _fileExists = exists;
             _isReady = true;
           });
         }
@@ -37,9 +42,9 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
       appBar: AppBar(title: Text(widget.title ?? 'PDF Viewer')),
       body: !_isReady
           ? const Center(child: CircularProgressIndicator())
-          : File(widget.path).existsSync()
+          : _fileExists
           ? SfPdfViewer.file(
-              File(widget.path),
+              _file,
               canShowScrollHead: false,
               canShowScrollStatus: false,
             )

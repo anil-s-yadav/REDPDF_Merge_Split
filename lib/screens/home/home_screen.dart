@@ -6,7 +6,6 @@ import 'package:in_app_update/in_app_update.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
-import '../../providers/user_provider.dart';
 import '../../providers/pdf_provider.dart';
 import '../../widgets/action_pill.dart';
 import '../../models/pdf_models.dart';
@@ -22,19 +21,16 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  // late TabController _tabController;
+class _HomeScreenState extends State<HomeScreen> {
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     if (!kDebugMode) {
       _checkUpdate();
     }
-    _initialCheck();
   }
 
   Future<void> _checkUpdate() async {
@@ -62,28 +58,14 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  Future<void> _initialCheck() async {
-    // System file scanning removed.
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _initialCheck();
-    }
-  }
-
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    // _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = context.watch<UserProvider>();
     final pdfProvider = context.watch<PdfProvider>();
     final pdfTheme = Theme.of(context).extension<PdfThemeExtension>()!;
     final colorScheme = Theme.of(context).colorScheme;
@@ -105,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen>
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 SizedBox(height: size.height * 0.03),
-                _buildHeader(context, userProvider, colorScheme),
+                _buildHeader(context, colorScheme),
                 SizedBox(height: size.height * 0.04),
                 _buildActionButtons(context, pdfTheme, size),
                 SizedBox(height: size.height * 0.04),
@@ -150,7 +132,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildHeader(
     BuildContext context,
-    UserProvider user,
     ColorScheme colorScheme,
   ) {
     return FittedBox(

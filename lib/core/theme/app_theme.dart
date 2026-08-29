@@ -17,7 +17,13 @@ class AppTheme {
   static const Color _darkSecondaryText = Color(0xFF9CA3AF);
   static const Color _darkBorder = Color(0xFF1F2937);
 
-  static ThemeData getLightTheme() {
+  static final ThemeData lightTheme = _buildLightTheme();
+  static final ThemeData darkTheme = _buildDarkTheme();
+
+  static ThemeData getLightTheme() => lightTheme;
+  static ThemeData getDarkTheme() => darkTheme;
+
+  static ThemeData _buildLightTheme() {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
@@ -69,7 +75,7 @@ class AppTheme {
     );
   }
 
-  static ThemeData getDarkTheme() {
+  static ThemeData _buildDarkTheme() {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
