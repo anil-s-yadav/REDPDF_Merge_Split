@@ -16,61 +16,32 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
   bool _isWatchingAd = false;
   final AdService _adService = AdService.instance;
 
-  // Dummy community supporters data to motivate user
-  final List<CommunitySupporter> _dummySupporters = [
-    const CommunitySupporter(
+  // Curated clean community supporters for motivation
+  final List<CommunitySupporter> _dummySupporters = const [
+    CommunitySupporter(
       name: 'David Miller',
       count: 48,
-      badge: '👑 Diamond Champion',
       color: Color(0xFF3B82F6),
     ),
-    const CommunitySupporter(
+    CommunitySupporter(
       name: 'Aisha Patel',
       count: 39,
-      badge: '🥇 Gold Patron',
       color: Color(0xFFF59E0B),
     ),
-    const CommunitySupporter(
+    CommunitySupporter(
       name: 'Lucas Silva',
       count: 31,
-      badge: '🥇 Gold Patron',
       color: Color(0xFF10B981),
     ),
-    const CommunitySupporter(
+    CommunitySupporter(
       name: 'Elena Rostova',
       count: 22,
-      badge: '🥈 Silver Supporter',
       color: Color(0xFF8B5CF6),
     ),
-    const CommunitySupporter(
+    CommunitySupporter(
       name: 'Kenji Tanaka',
       count: 17,
-      badge: '🥈 Silver Supporter',
       color: Color(0xFFEC4899),
-    ),
-    const CommunitySupporter(
-      name: 'Chloe Martin',
-      count: 14,
-      badge: '🥈 Silver Supporter',
-      color: Color(0xFF06B6D4),
-    ),
-    const CommunitySupporter(
-      name: 'Liam Walker',
-      count: 9,
-      badge: '🥉 Bronze Helper',
-      color: Color(0xFFF97316),
-    ),
-    const CommunitySupporter(
-      name: 'Amara Johnson',
-      count: 6,
-      badge: '🥉 Bronze Helper',
-      color: Color(0xFF14B8A6),
-    ),
-    const CommunitySupporter(
-      name: 'Noah Schmidt',
-      count: 4,
-      badge: '🥉 Bronze Helper',
-      color: Color(0xFF6366F1),
     ),
   ];
 
@@ -78,7 +49,6 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
   void initState() {
     super.initState();
     _loadUserWatchCount();
-    // Ensure rewarded ad is pre-loading in background
     _adService.loadRewardedAd();
   }
 
@@ -92,11 +62,11 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
   }
 
   String _getUserTierTitle(int count) {
-    if (count >= 25) return '💎 Diamond Champion';
-    if (count >= 10) return '🥇 Gold Patron';
-    if (count >= 5) return '🥈 Silver Supporter';
-    if (count >= 1) return '🥉 Bronze Helper';
-    return '🌱 Future Supporter';
+    if (count >= 25) return '💎 Diamond';
+    if (count >= 10) return '🥇 Gold';
+    if (count >= 5) return '🥈 Silver';
+    if (count >= 1) return '🥉 Bronze';
+    return '🌱 Supporter';
   }
 
   int _getNextTierTarget(int count) {
@@ -286,7 +256,7 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  '$_userWatchCount Supported',
+                  '$_userWatchCount Supports from you',
                   style: const TextStyle(
                     color: Color(0xFFEF4444),
                     fontWeight: FontWeight.bold,
@@ -307,23 +277,23 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Hero Heartfelt Banner
+              // 1. Hero Heartfelt Banner
               _buildHeroCard(context, isDark),
               const SizedBox(height: 16),
 
-              // User's Personal Stats Card
+              // 2. User's Personal Stats Card
               _buildUserProgressCard(context, isDark, colorScheme),
               const SizedBox(height: 16),
 
-              // Watch Ad CTA Button
+              // 3. Watch Ad CTA Button
               _buildWatchAdButton(context, isDark),
               const SizedBox(height: 24),
 
-              // Community Leaderboard (Dummy user data showing others helping us)
-              _buildCommunitySection(context, isDark, colorScheme),
+              // 4. Cleaner & Aesthetic Community Leaderboard
+              _buildCleanLeaderboard(context, isDark, colorScheme),
               const SizedBox(height: 24),
 
-              // 4:3 / Rich Media Banner showcase (custom banner requested by user)
+              // 5. 4:3 / Rich Media Banner showcase
               _buildRichMediaBannerCard(context, isDark),
               const SizedBox(height: 80), // Padding for bottom nav bar
             ],
@@ -333,6 +303,7 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
     );
   }
 
+  // ── Hero Banner ──
   Widget _buildHeroCard(BuildContext context, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -424,7 +395,7 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
           ),
           const SizedBox(height: 14),
           Text(
-            "Our PDF tools are free, fast, and private. Watch a quick sponsored ad to support our development and future updates—no paywalls or annoying popups!",
+            'Watching a voluntary ad here helps us cover server and maintenance costs, support developer and future updates. Thank you for your support!',
             style: TextStyle(
               fontSize: 13,
               height: 1.45,
@@ -436,6 +407,7 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
     );
   }
 
+  // ── User Progress Card ──
   Widget _buildUserProgressCard(
     BuildContext context,
     bool isDark,
@@ -510,7 +482,6 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
             ],
           ),
           const SizedBox(height: 14),
-          // Progress to next tier
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
@@ -552,6 +523,7 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
     );
   }
 
+  // ── Watch Ad Button ──
   Widget _buildWatchAdButton(BuildContext context, bool isDark) {
     return Container(
       decoration: BoxDecoration(
@@ -615,12 +587,12 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
     );
   }
 
-  Widget _buildCommunitySection(
+  // ── Cleaner & Aesthetic Leaderboard ──
+  Widget _buildCleanLeaderboard(
     BuildContext context,
     bool isDark,
     ColorScheme colorScheme,
   ) {
-    // Total dummy community ads calculation
     final totalCommunityAds =
         _dummySupporters.fold<int>(0, (sum, item) => sum + item.count) +
         _userWatchCount;
@@ -641,217 +613,197 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header with Clean Total Badge
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
-                  Text(
-                    'Community Supporters',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  const Icon(
+                    Icons.emoji_events_rounded,
+                    color: Color(0xFFF59E0B),
+                    size: 20,
                   ),
-                  SizedBox(height: 2),
-                  Text(
-                    'Others who are helping keep us going',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Our Top Supporters',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(
-                    0xFF10B981,
-                  ).withValues(alpha: isDark ? 0.2 : 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '$totalCommunityAds Ads Total',
-                  style: const TextStyle(
-                    color: Color(0xFF10B981),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 11,
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(
+                      0xFF10B981,
+                    ).withValues(alpha: isDark ? 0.2 : 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '$totalCommunityAds Ads Contributed',
+                    style: const TextStyle(
+                      color: Color(0xFF10B981),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
-          // User's rank row if they've watched any ads
+          // User's Row (Clean & Highlighted if user has watched)
           if (_userWatchCount > 0) ...[
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              margin: const EdgeInsets.only(bottom: 10),
               decoration: BoxDecoration(
                 color: const Color(
                   0xFFEF4444,
-                ).withValues(alpha: isDark ? 0.15 : 0.08),
+                ).withValues(alpha: isDark ? 0.18 : 0.08),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: const Color(0xFFEF4444).withValues(alpha: 0.4),
+                  color: const Color(0xFFEF4444).withValues(alpha: 0.35),
                 ),
               ),
               child: Row(
                 children: [
+                  const Text('⭐', style: TextStyle(fontSize: 14)),
+                  const SizedBox(width: 10),
                   const CircleAvatar(
-                    radius: 18,
+                    radius: 14,
                     backgroundColor: Color(0xFFEF4444),
                     child: Text(
                       'You',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: 10,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Text(
-                              'You (Active Helper)',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                            SizedBox(width: 6),
-                            Icon(Icons.star, color: Colors.amber, size: 14),
-                          ],
-                        ),
-                        Text(
-                          _getUserTierTitle(_userWatchCount),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: isDark
-                                ? Colors.grey.shade400
-                                : Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text(
+                      'You (Active Helper)',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
-                      vertical: 4,
+                      vertical: 3,
                     ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFEF4444),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       '$_userWatchCount ads',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: 11,
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 12),
           ],
 
-          // Dummy Community list
+          // Clean Top Supporters List (Clean, modern rows)
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: _dummySupporters.length,
             separatorBuilder: (context, index) => Divider(
-              height: 14,
+              height: 12,
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.black.withValues(alpha: 0.04),
+                  ? Colors.white.withValues(alpha: 0.04)
+                  : Colors.black.withValues(alpha: 0.03),
             ),
             itemBuilder: (context, index) {
               final supporter = _dummySupporters[index];
               final rank = index + 1;
 
-              return Row(
-                children: [
-                  SizedBox(
-                    width: 24,
-                    child: Text(
-                      '#$rank',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: rank <= 3
-                            ? Colors.amber.shade600
-                            : Colors.grey.shade500,
+              final String rankBadge = switch (rank) {
+                1 => '🥇',
+                2 => '🥈',
+                3 => '🥉',
+                _ => '#$rank',
+              };
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 24,
+                      child: Text(
+                        rankBadge,
+                        style: TextStyle(
+                          fontSize: rank <= 3 ? 14 : 11,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade500,
+                        ),
                       ),
                     ),
-                  ),
-                  CircleAvatar(
-                    radius: 16,
-                    backgroundColor: supporter.color.withValues(alpha: 0.15),
-                    child: Text(
-                      supporter.name.substring(0, 1),
-                      style: TextStyle(
-                        color: supporter.color,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                    const SizedBox(width: 8),
+                    CircleAvatar(
+                      radius: 14,
+                      backgroundColor: supporter.color.withValues(alpha: 0.15),
+                      child: Text(
+                        supporter.name.substring(0, 1),
+                        style: TextStyle(
+                          color: supporter.color,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          supporter.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        supporter.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
                         ),
-                        Text(
-                          supporter.badge,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: isDark
-                                ? Colors.grey.shade400
-                                : Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.08)
-                          : Colors.black.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '${supporter.count} ads',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
                         color: isDark
-                            ? Colors.grey.shade300
-                            : Colors.grey.shade800,
+                            ? Colors.white.withValues(alpha: 0.06)
+                            : Colors.black.withValues(alpha: 0.04),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${supporter.count} ads',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                          color: isDark
+                              ? Colors.grey.shade300
+                              : Colors.grey.shade800,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               );
             },
           ),
@@ -860,6 +812,7 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
     );
   }
 
+  // ── 4:3 / Rich Media Banner Card ──
   Widget _buildRichMediaBannerCard(BuildContext context, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -885,7 +838,6 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
             ],
           ),
         ),
-        // AdMob Medium Rectangle (300x250) / 4:3 Video & Image banner
         const Center(
           child: AdBannerWidget(
             bannerType: AdBannerType.mediumRectangle,
@@ -900,13 +852,11 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
 class CommunitySupporter {
   final String name;
   final int count;
-  final String badge;
   final Color color;
 
   const CommunitySupporter({
     required this.name,
     required this.count,
-    required this.badge,
     required this.color,
   });
 }
