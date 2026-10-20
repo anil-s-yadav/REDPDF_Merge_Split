@@ -13,7 +13,43 @@ class UpgradeScreen extends StatefulWidget {
 }
 
 class _UpgradeScreenState extends State<UpgradeScreen> {
-  int _selectedPlanIndex = 1; // 0: 1 Year, 1: 5 Years, 2: Lifetime
+  // 0: 1 Month (₹29), 1: 6 Months (₹99), 2: 1 Year (₹189), 3: Lifetime (₹999)
+  int _selectedPlanIndex = 2; // Default to 1 Year (Most Popular)
+
+  final List<Map<String, dynamic>> _plans = const [
+    {
+      'id': 'redpdf_pro_1month',
+      'title': '1 Month',
+      'price': '₹29',
+      'period': '/ month',
+      'desc': 'Remove ads & faster processing for 1 month',
+      'badge': '',
+    },
+    {
+      'id': 'redpdf_pro_6months',
+      'title': '6 Months',
+      'price': '₹99',
+      'period': 'for 6 months',
+      'desc': '₹16.5/mo • Remove ads & faster processing',
+      'badge': '',
+    },
+    {
+      'id': 'redpdf_pro_1year',
+      'title': '1 Year',
+      'price': '₹189',
+      'period': 'for 1 year',
+      'desc': '₹15.7/mo • Save 46% compared to monthly',
+      'badge': 'MOST POPULAR',
+    },
+    {
+      'id': 'redpdf_pro_lifetime',
+      'title': 'Lifetime',
+      'price': '₹999',
+      'period': 'one-time',
+      'desc': 'Pay once, keep PRO features forever',
+      'badge': 'BEST VALUE',
+    },
+  ];
 
   Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
@@ -44,10 +80,10 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
         width: double.infinity,
         decoration: BoxDecoration(
           gradient: RadialGradient(
-            center: const Alignment(0, -0.5),
-            radius: 1.2,
+            center: const Alignment(0, -0.6),
+            radius: 1.3,
             colors: [
-              pdfTheme.gold.withValues(alpha: 0.15),
+              pdfTheme.gold.withValues(alpha: 0.16),
               colorScheme.surface,
             ],
           ),
@@ -55,61 +91,78 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              _buildAppBar(context),
+              // ── Top Bar with "X" Close in Top-Right ──
+              _buildTopBar(context),
               Expanded(
                 child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppConstants.spacing24,
                   ),
                   child: Column(
                     children: [
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 6),
                       _buildHeaderIcon(pdfTheme),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 18),
                       const Text(
                         'Unlock RedPDF PRO',
                         style: TextStyle(
-                          fontSize: 28,
+                          fontSize: 26,
                           fontWeight: FontWeight.bold,
+                          letterSpacing: -0.3,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
-                        'Experience unlimited, ad-free PDF productivity with accelerated file processing.',
+                        'Enjoy completely ad-free workflows and faster file processing.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-                          fontSize: 14,
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600,
+                          fontSize: 13,
                         ),
                       ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 22),
+
+                      // ── Feature Highlights ──
                       _buildFeatureItem(
                         pdfTheme,
                         Icons.block_flipped,
-                        '100% Ad-Free Experience (No Banners & No Ads)',
+                        '100% Ad-Free Experience',
+                        'No banner ads or interruptions across the app',
                       ),
                       _buildFeatureItem(
                         pdfTheme,
                         Icons.bolt_rounded,
-                        'Turbo File Processing (Faster Merge & Split)',
+                        'Faster Processing Speed',
+                        'Accelerated PDF merging and splitting operations',
                       ),
                       _buildFeatureItem(
                         pdfTheme,
                         Icons.all_inclusive_rounded,
-                        'Unlimited PDF Operations & No File Size Caps',
+                        'Unlimited PDF Operations',
+                        'Merge and split as many documents as you need',
                       ),
                       _buildFeatureItem(
                         pdfTheme,
                         Icons.security_rounded,
-                        'Local & Secure On-Device Processing',
+                        '100% Private On-Device',
+                        'Files never leave your phone or upload to servers',
                       ),
-                      const SizedBox(height: 28),
-                      _buildPricingCards(pdfTheme, colorScheme, isDark),
-                      const SizedBox(height: 28),
-                      _buildUnlockButton(context, pdfTheme, userProvider),
-                      const SizedBox(height: 24),
-                      _buildFooter(colorScheme),
                       const SizedBox(height: 20),
+
+                      // ── 4 Pricing Cards ──
+                      _buildPricingCards(pdfTheme, colorScheme, isDark),
+                      const SizedBox(height: 24),
+
+                      // ── CTA Button ──
+                      _buildContinueButton(context, pdfTheme, userProvider),
+                      const SizedBox(height: 18),
+
+                      // ── Footer Links ──
+                      _buildFooter(colorScheme),
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
@@ -121,24 +174,35 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
     );
   }
 
-  Widget _buildAppBar(BuildContext context) {
+  // ── Top Bar with "X" Close Button in Top-Right ──
+  Widget _buildTopBar(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppConstants.spacing20,
-        vertical: AppConstants.spacing12,
+        horizontal: AppConstants.spacing16,
+        vertical: 8,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          const Row(
+            children: [
+              Icon(Icons.workspace_premium_rounded, color: Color(0xFFEAB308), size: 22),
+              SizedBox(width: 8),
+              Text(
+                'RedPDF PRO',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
           IconButton(
-            icon: const Icon(Icons.close),
+            icon: const Icon(Icons.close_rounded, size: 26),
             onPressed: () => Navigator.pop(context),
+            tooltip: 'Close',
           ),
-          const Text(
-            'Upgrade to Premium',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(width: 48),
         ],
       ),
     );
@@ -146,28 +210,32 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
 
   Widget _buildHeaderIcon(PdfThemeExtension pdfTheme) {
     return Container(
-      width: 100,
-      height: 100,
+      width: 86,
+      height: 86,
       decoration: BoxDecoration(
-        color: pdfTheme.gold.withValues(alpha: 0.2),
+        color: pdfTheme.gold.withValues(alpha: 0.18),
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: pdfTheme.gold.withValues(alpha: 0.3),
-            blurRadius: 30,
-            spreadRadius: 6,
+            color: pdfTheme.gold.withValues(alpha: 0.28),
+            blurRadius: 26,
+            spreadRadius: 4,
           ),
         ],
       ),
       child: Center(
         child: Container(
-          width: 76,
-          height: 76,
+          width: 66,
+          height: 66,
           decoration: BoxDecoration(
             color: pdfTheme.gold,
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 40),
+          child: const Icon(
+            Icons.workspace_premium_rounded,
+            color: Colors.white,
+            size: 36,
+          ),
         ),
       ),
     );
@@ -176,25 +244,43 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
   Widget _buildFeatureItem(
     PdfThemeExtension pdfTheme,
     IconData icon,
-    String text,
+    String title,
+    String subtitle,
   ) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: 11),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(7),
+            margin: const EdgeInsets.only(top: 2),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: pdfTheme.mergeContainer,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: pdfTheme.mergePrimary, size: 18),
+            child: Icon(icon, color: pdfTheme.mergePrimary, size: 16),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -207,47 +293,28 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
     ColorScheme colorScheme,
     bool isDark,
   ) {
-    final plans = [
-      {
-        'title': '1 Year',
-        'price': '₹99',
-        'duration': 'for 1 year',
-        'badge': '',
-      },
-      {
-        'title': '5 Years',
-        'price': '₹399',
-        'duration': 'for 5 years',
-        'badge': 'POPULAR',
-      },
-      {
-        'title': 'Lifetime',
-        'price': '₹999',
-        'duration': 'forever',
-        'badge': 'BEST VALUE',
-      },
-    ];
-
     return Column(
-      children: List.generate(plans.length, (index) {
-        final plan = plans[index];
+      children: List.generate(_plans.length, (index) {
+        final plan = _plans[index];
         final isSelected = _selectedPlanIndex == index;
-        final hasBadge = (plan['badge'] as String).isNotEmpty;
+        final badge = (plan['badge'] as String);
+        final hasBadge = badge.isNotEmpty;
 
         return GestureDetector(
           onTap: () => setState(() => _selectedPlanIndex = index),
           child: Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               color: isSelected
                   ? (isDark
-                      ? pdfTheme.gold.withValues(alpha: 0.15)
+                      ? pdfTheme.gold.withValues(alpha: 0.16)
                       : const Color(0xFFFFFBEB))
                   : (isDark
                       ? colorScheme.surface.withValues(alpha: 0.8)
-                      : colorScheme.surfaceContainerHighest.withValues(alpha: 0.4)),
-              borderRadius: BorderRadius.circular(16),
+                      : colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.45)),
+              borderRadius: BorderRadius.circular(15),
               border: Border.all(
                 color: isSelected
                     ? pdfTheme.gold
@@ -259,9 +326,9 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: pdfTheme.gold.withValues(alpha: 0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 3),
+                        color: pdfTheme.gold.withValues(alpha: 0.22),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
                     ]
                   : null,
@@ -273,9 +340,9 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                       ? Icons.radio_button_checked_rounded
                       : Icons.radio_button_off_rounded,
                   color: isSelected ? pdfTheme.gold : Colors.grey,
-                  size: 22,
+                  size: 20,
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -285,10 +352,12 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                           Text(
                             plan['title'] as String,
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 15,
                               fontWeight: FontWeight.bold,
                               color: isSelected
-                                  ? (isDark ? Colors.white : const Color(0xFF78350F))
+                                  ? (isDark
+                                      ? Colors.white
+                                      : const Color(0xFF78350F))
                                   : null,
                             ),
                           ),
@@ -296,19 +365,22 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                             const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
+                                horizontal: 7,
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: pdfTheme.gold,
-                                borderRadius: BorderRadius.circular(8),
+                                color: badge == 'BEST VALUE'
+                                    ? const Color(0xFF10B981)
+                                    : pdfTheme.gold,
+                                borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                plan['badge'] as String,
+                                badge,
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 10,
+                                  fontSize: 9.5,
                                   fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.2,
                                 ),
                               ),
                             ),
@@ -317,22 +389,38 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Remove all ads & faster processing ${plan['duration']}',
+                        plan['desc'] as String,
                         style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                          fontSize: 11,
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600,
                         ),
                       ),
                     ],
                   ),
                 ),
-                Text(
-                  plan['price'] as String,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: isSelected ? pdfTheme.gold : null,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      plan['price'] as String,
+                      style: TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.bold,
+                        color: isSelected ? pdfTheme.gold : null,
+                      ),
+                    ),
+                    Text(
+                      plan['period'] as String,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -342,13 +430,15 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
     );
   }
 
-  Widget _buildUnlockButton(
+  Widget _buildContinueButton(
     BuildContext context,
     PdfThemeExtension pdfTheme,
     UserProvider userProvider,
   ) {
-    final prices = ['₹99', '₹399', '₹999'];
-    final selectedPrice = prices[_selectedPlanIndex];
+    final selected = _plans[_selectedPlanIndex];
+    final buttonLabel = selected['title'] == 'Lifetime'
+        ? 'Get Lifetime Access • ${selected['price']}'
+        : 'Continue • ${selected['price']} ${selected['period']}';
 
     return InkWell(
       onTap: () {
@@ -356,7 +446,9 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('PRO Unlocked for $selectedPrice! (Demo)'),
+            content: Text(
+              'PRO Unlocked for ${selected['price']}! (Billing Integration Next)',
+            ),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -364,7 +456,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
       borderRadius: BorderRadius.circular(28),
       child: Container(
         width: double.infinity,
-        height: 56,
+        height: 54,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(28),
           gradient: LinearGradient(colors: [pdfTheme.gold, pdfTheme.goldLight]),
@@ -372,7 +464,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             BoxShadow(
               color: pdfTheme.gold.withValues(alpha: 0.35),
               blurRadius: 16,
-              offset: const Offset(0, 6),
+              offset: const Offset(0, 5),
             ),
           ],
         ),
@@ -381,15 +473,19 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Get PRO for $selectedPrice',
+                buttonLabel,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 17,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
+              const Icon(
+                Icons.arrow_forward_rounded,
+                color: Colors.white,
+                size: 19,
+              ),
             ],
           ),
         ),
@@ -400,7 +496,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
   Widget _buildFooter(ColorScheme colorScheme) {
     final style = TextStyle(
       color: colorScheme.onSurface.withValues(alpha: 0.6),
-      fontSize: 12,
+      fontSize: 11.5,
       decoration: TextDecoration.underline,
     );
     return Row(

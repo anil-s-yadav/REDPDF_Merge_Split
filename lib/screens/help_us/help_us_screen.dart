@@ -131,94 +131,6 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
       _isWatchingAd = false;
     });
 
-    _showCelebrationDialog(updatedCount);
-  }
-
-  void _showCelebrationDialog(int count) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        backgroundColor: isDark ? const Color(0xFF1E2433) : Colors.white,
-        title: const Center(
-          child: Column(
-            children: [
-              Text('❤️🎉', style: TextStyle(fontSize: 44)),
-              SizedBox(height: 8),
-              Text(
-                'Thank You So Much!',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-              ),
-            ],
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Your support directly helps us keep RedPDF 100% free and uninterrupted for you and thousands of others.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(
-                  0xFFEF4444,
-                ).withValues(alpha: isDark ? 0.2 : 0.1),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: const Color(0xFFEF4444).withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.favorite,
-                    color: Color(0xFFEF4444),
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Total Ads Watched: $count',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFEF4444),
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'You are welcome!',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -840,7 +752,7 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
         ),
         const Center(
           child: AdBannerWidget(
-            bannerType: AdBannerType.mediumRectangle,
+            bannerType: AdBannerType.fourByThree,
             showBadge: true,
           ),
         ),

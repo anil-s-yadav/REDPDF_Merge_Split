@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../widgets/ad_banner_widget.dart' show BannerAdCache, AdBannerType;
 
 class AdService {
   AdService._();
@@ -219,5 +218,134 @@ class AdService {
       log('Error saving ad watch count: $e');
       return 0;
     }
+  }
+}
+
+
+enum AdBannerType {
+  standard, // 320 x 50
+  large, // 320 x 100
+  mediumRectangle, // 300 x 250
+  square1x1, // 300 x 300
+  fourByThree, // 320 x 240
+  adaptive, // full-width anchored
+}
+
+class CachedBannerEntry {
+  final BannerAd ad;
+  final AdSize size;
+  bool isLoaded;
+  final AdBannerType type;
+
+  CachedBannerEntry({
+    required this.ad,
+    required this.size,
+    required this.type,
+    this.isLoaded = false,
+  });
+}
+
+class BannerAdCache {
+  BannerAdCache._();
+  static final BannerAdCache instance = BannerAdCache._();
+
+  final Map<AdBannerType, CachedBannerEntry?> _cache = {};
+  final Map<AdBannerType, bool> _loading = {};
+
+  void preload([List<AdBannerType> types = const [
+    AdBannerType.standard,
+    AdBannerType.mediumRectangle,
+  ]]) {
+    if (kIsWeb) return;
+    if (!Platform.isAndroid && !Platform.isIOS) return;
+    for (final type in types) {
+      if (_cache[type] == null && _loading[type] != true) {
+        _loadForType(type);
+      }
+    }
+  }
+
+  bool isReady(AdBannerType type) {
+    final entry = _cache[type];
+    return entry != null && entry.isLoaded;
+  }
+
+  AdSize? sizeFor(AdBannerType type) => _cache[type]?.size;
+
+  CachedBannerEntry? claim(AdBannerType type) {
+    final entry = _cache[type];
+    if (entry == null || !entry.isLoaded) return null;
+    _cache[type] = null;
+    _loadForType(type);
+    return entry;
+  }
+
+  Future<void> _loadForType(AdBannerType type) async {
+    if (kIsWeb) return;
+    if (!Platform.isAndroid && !Platform.isIOS) return;
+    if (_loading[type] == true) return;
+
+    final adUnitId = AdService.bannerAdUnitId;
+    if (adUnitId.isEmpty) return;
+
+    AdSize adSize;
+    try {
+      adSize = await _resolveSize(type);
+    } catch (_) {
+      return;
+    }
+
+    _loading[type] = true;
+
+    final ad = BannerAd(
+      adUnitId: adUnitId,
+      size: adSize,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          log('[AdCache] $type loaded (${adSize.width}x${adSize.height})');
+          _cache[type] = CachedBannerEntry(
+            ad: ad as BannerAd,
+            size: adSize,
+            type: type,
+            isLoaded: true,
+          );
+          _loading[type] = false;
+        },
+        onAdFailedToLoad: (ad, error) {
+          log('[AdCache] $type failed: ${error.message}');
+          ad.dispose();
+          _cache[type] = null;
+          _loading[type] = false;
+        },
+      ),
+    );
+
+    await ad.load();
+  }
+
+  static Future<AdSize> _resolveSize(AdBannerType type) async {
+    switch (type) {
+      case AdBannerType.standard:
+        return AdSize.banner;
+      case AdBannerType.large:
+        return AdSize.largeBanner;
+      case AdBannerType.mediumRectangle:
+        return AdSize.mediumRectangle;
+      case AdBannerType.square1x1:
+        return const AdSize(width: 300, height: 300);
+      case AdBannerType.fourByThree:
+        return const AdSize(width: 320, height: 240);
+      case AdBannerType.adaptive:
+        return AdSize.largeBanner;
+    }
+  }
+
+  void dispose() {
+    for (final entry in _cache.values) {
+      entry?.ad.dispose();
+    }
+    _cache.clear();
+    _loading.clear();
   }
 }
