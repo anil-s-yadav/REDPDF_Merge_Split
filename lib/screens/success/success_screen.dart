@@ -46,6 +46,17 @@ class _SuccessScreenState extends State<SuccessScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final size = MediaQuery.sizeOf(context);
 
+    final result = context.watch<PdfProvider>().lastResult;
+    final List<String> paths = [];
+    if (result != null) {
+      if (isSplit) {
+        paths.addAll(result.outputPaths);
+      } else if (result.outputPath != null) {
+        paths.add(result.outputPath!);
+      }
+    }
+    final bool isSingleFile = paths.length <= 1;
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -102,16 +113,20 @@ class _SuccessScreenState extends State<SuccessScreen> {
                 child: _buildResultSection(
                   context,
                   isSplit,
+                  paths,
+                  isSingleFile,
                   pdfTheme,
                   colorScheme,
                   size,
                 ),
               ),
-              SizedBox(height: size.height * 0.01),
-              // Banner ad here
-              const Center(
-                child: AdBannerWidget(bannerType: AdBannerType.standard),
-              ),
+              if (!isSingleFile) ...[
+                SizedBox(height: size.height * 0.01),
+                // Standard banner ad when multiple files exist (Split screen)
+                const Center(
+                  child: AdBannerWidget(bannerType: AdBannerType.standard),
+                ),
+              ],
               SizedBox(height: size.height * 0.01),
               _buildActionButtons(context, isSplit, pdfTheme, colorScheme),
             ],
@@ -166,31 +181,73 @@ class _SuccessScreenState extends State<SuccessScreen> {
   Widget _buildResultSection(
     BuildContext context,
     bool isSplit,
+    List<String> paths,
+    bool isSingleFile,
     PdfThemeExtension pdfTheme,
     ColorScheme colorScheme,
     Size size,
   ) {
-    final result = context.watch<PdfProvider>().lastResult;
-    if (result == null) return const SizedBox.shrink();
-
-    final List<String> paths = [];
-    if (isSplit) {
-      paths.addAll(result.outputPaths);
-    } else if (result.outputPath != null) {
-      paths.add(result.outputPath!);
-    }
-
     if (paths.isEmpty) return const SizedBox.shrink();
 
+    // ── Single File Case (Merge, or single split file):
+    // Utilize the open middle screen space for a rich 300x250 Medium Rectangle ad
+    if (isSingleFile) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final bool canFitMrec = constraints.maxHeight >= 320;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  isSplit ? 'Generated File' : 'Merged File',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
+              _buildFileItem(
+                context,
+                paths.first,
+                isSplit,
+                pdfTheme,
+                colorScheme,
+              ),
+              if (canFitMrec) ...[
+                const Spacer(),
+                const Center(
+                  child: AdBannerWidget(
+                    bannerType: AdBannerType.mediumRectangle,
+                    showBadge: false,
+                  ),
+                ),
+                const Spacer(),
+              ] else ...[
+                const Spacer(),
+                const Center(
+                  child: AdBannerWidget(
+                    bannerType: AdBannerType.standard,
+                    showBadge: false,
+                  ),
+                ),
+              ],
+            ],
+          );
+        },
+      );
+    }
+
+    // ── Multiple Files Case (Split with many output files):
+    // Display scrollable list of files; bottom anchored banner is shown above buttons
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: Text(
-            isSplit
-                ? 'Generated File${paths.length > 1 ? 's (${paths.length})' : ''}'
-                : 'Merged File',
+            'Generated Files (${paths.length})',
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.grey,
