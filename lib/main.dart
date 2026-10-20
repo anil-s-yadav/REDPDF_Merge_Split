@@ -12,7 +12,6 @@ import 'screens/success/success_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/upgrade/upgrade_screen.dart';
 import 'screens/split_pdf/split_pdf_screen.dart';
-import 'screens/viewer/pdf_viewer_screen.dart';
 import 'services/ad_service.dart';
 
 void main() async {
@@ -56,8 +55,6 @@ class MainApp extends StatelessWidget {
             '/profile': (context) => const ProfileScreen(),
             '/upgrade': (context) => const UpgradeScreen(),
             '/split-pdf': (context) => const SplitPdfScreen(),
-            '/viewer': (context) =>
-                const PdfViewerScreen(path: 'sample.pdf', title: 'PDF Viewer'),
           },
         );
       },

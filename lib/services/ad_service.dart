@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../widgets/ad_banner_widget.dart' show BannerAdCache, AdBannerType;
 
 class AdService {
   AdService._();
@@ -81,6 +82,14 @@ class AdService {
       );
       log('[AdMob] Banner Unit: $bannerAdUnitId');
       log('[AdMob] Adapter statuses: ${status.adapterStatuses}');
+
+      // Preload banner ad cache for the most-used sizes so screens have
+      // instant ads ready without waiting on network.
+      BannerAdCache.instance.preload([
+        AdBannerType.standard,
+        AdBannerType.mediumRectangle,
+      ]);
+
       // Preload the first voluntary rewarded ad for the Help Us screen
       loadRewardedAd();
     } catch (e) {

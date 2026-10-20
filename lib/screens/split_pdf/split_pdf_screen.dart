@@ -12,7 +12,7 @@ import '../../core/theme/pdf_theme_extension.dart';
 import '../../models/pdf_models.dart';
 import '../../providers/pdf_provider.dart';
 import '../../widgets/output_file_name_field.dart';
-import '../viewer/pdf_viewer_screen.dart';
+import '../../services/file_opener_service.dart';
 import '../processing/processing_screen.dart';
 
 enum _SplitMode { extract, everyPage, range, delete }
@@ -485,15 +485,7 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
                               children: [
                                 Expanded(
                                   child: OutlinedButton.icon(
-                                    onPressed: () => Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => PdfViewerScreen(
-                                          path: path,
-                                          title: _inputName ?? 'PDF',
-                                        ),
-                                      ),
-                                    ),
+                                    onPressed: () => FileOpenerService.openPdf(context, path),
                                     icon: const Icon(Icons.visibility_outlined),
                                     label: const Text('Preview'),
                                   ),

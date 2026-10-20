@@ -11,7 +11,7 @@ import '../../core/theme/pdf_theme_extension.dart';
 import '../../providers/pdf_provider.dart';
 import '../../widgets/rate_us_dialog.dart';
 import '../../services/rate_us_service.dart';
-import '../viewer/pdf_viewer_screen.dart';
+import '../../services/file_opener_service.dart';
 
 class SuccessScreen extends StatefulWidget {
   final bool isSplit;
@@ -53,7 +53,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
           child: Column(
             children: [
               _buildSuccessAnimation(isSplit, pdfTheme),
-              SizedBox(height: size.height * 0.03),
+              SizedBox(height: size.height * 0.025),
               FittedBox(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -73,15 +73,31 @@ class _SuccessScreenState extends State<SuccessScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: size.height * 0.01),
-              Text(
-                isSplit
-                    ? 'Your files have been split and saved to\nyour device.'
-                    : 'Your files have been combined into a single\nhigh-quality document.',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall,
+
+              const SizedBox(height: 10),
+              // ── Saved Location Pill ──
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.folder_outlined,
+                    size: 16,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      'Saved in: Downloads folder',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: size.height * 0.04),
+              SizedBox(height: size.height * 0.025),
               Expanded(
                 child: _buildResultSection(
                   context,
@@ -91,15 +107,13 @@ class _SuccessScreenState extends State<SuccessScreen> {
                   size,
                 ),
               ),
-              SizedBox(height: size.height * 0.02),
-              _buildActionButtons(
-                context,
-                size,
-                isSplit,
-                pdfTheme,
-                colorScheme,
+              SizedBox(height: size.height * 0.01),
+              // Banner ad here
+              const Center(
+                child: AdBannerWidget(bannerType: AdBannerType.fourByThree),
               ),
-              SizedBox(height: size.height * 0.03),
+              SizedBox(height: size.height * 0.01),
+              _buildActionButtons(context, isSplit, pdfTheme, colorScheme),
             ],
           ),
         ),
@@ -107,11 +121,30 @@ class _SuccessScreenState extends State<SuccessScreen> {
     );
   }
 
+  // Widget _buildSavedLocationBadge(BuildContext context) {
+  //   final isDark = Theme.of(context).brightness == Brightness.dark;
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+  //     decoration: BoxDecoration(
+  //       color: isDark
+  //           ? Colors.white.withValues(alpha: 0.06)
+  //           : const Color(0xFFF3F4F6),
+  //       borderRadius: BorderRadius.circular(20),
+  //       border: Border.all(
+  //         color: isDark
+  //             ? Colors.white.withValues(alpha: 0.1)
+  //             : Colors.black.withValues(alpha: 0.08),
+  //       ),
+  //     ),
+  //     child:
+  //   );
+  // }
+
   Widget _buildSuccessAnimation(bool isSplit, PdfThemeExtension pdfTheme) {
     final color = isSplit ? pdfTheme.splitPrimary : pdfTheme.mergePrimary;
     return Container(
-          width: 80,
-          height: 80,
+          width: 76,
+          height: 76,
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,
@@ -123,7 +156,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
               ),
             ],
           ),
-          child: const Icon(Icons.check, color: Colors.white, size: 80),
+          child: const Icon(Icons.check, color: Colors.white, size: 76),
         )
         .animate()
         .scale(duration: 500.ms, curve: Curves.easeOutBack)
@@ -179,11 +212,6 @@ class _SuccessScreenState extends State<SuccessScreen> {
             },
           ),
         ),
-        SizedBox(height: size.height * 0.01),
-        // Banner ad here
-        const Center(
-          child: AdBannerWidget(bannerType: AdBannerType.fourByThree),
-        ),
       ],
     );
   }
@@ -203,13 +231,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
       ),
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-                  PdfViewerScreen(path: path, title: p.basename(path)),
-            ),
-          );
+          FileOpenerService.openPdf(context, path);
         },
         borderRadius: BorderRadius.circular(AppConstants.borderRadius24),
         child: ListTile(
@@ -228,9 +250,9 @@ class _SuccessScreenState extends State<SuccessScreen> {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
-          subtitle: const Text(
-            'Tap to view',
-            style: TextStyle(color: Colors.grey, fontSize: 12),
+          subtitle: Text(
+            ' • Tap to open',
+            style: TextStyle(color: Colors.grey, fontSize: 11),
           ),
           trailing: const Icon(Icons.chevron_right, color: Colors.grey),
         ),
@@ -240,7 +262,6 @@ class _SuccessScreenState extends State<SuccessScreen> {
 
   Widget _buildActionButtons(
     BuildContext context,
-    Size size,
     bool isSplit,
     PdfThemeExtension pdfTheme,
     ColorScheme colorScheme,
@@ -313,8 +334,6 @@ class _SuccessScreenState extends State<SuccessScreen> {
             ),
           ],
         ),
-        // Banner ad here
-        const Center(child: AdBannerWidget(bannerType: AdBannerType.standard)),
       ],
     );
   }
@@ -406,12 +425,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
     if (!isSplit) {
       final path = result.outputPath;
       if (path == null || !context.mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => PdfViewerScreen(path: path, title: 'Merged PDF'),
-        ),
-      );
+      await FileOpenerService.openPdf(context, path);
       return;
     }
 
@@ -420,13 +434,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
     if (result.outputPaths.length == 1) {
       final filePath = result.outputPaths.first;
       if (!context.mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) =>
-              PdfViewerScreen(path: filePath, title: p.basename(filePath)),
-        ),
-      );
+      await FileOpenerService.openPdf(context, filePath);
     } else {
       if (!context.mounted) return;
       showModalBottomSheet(
@@ -456,17 +464,13 @@ class _SuccessScreenState extends State<SuccessScreen> {
                       pdfTheme: pdfTheme,
                     ),
                     title: Text(p.basename(filePath)),
+                    subtitle: const Text(
+                      'Saved in Downloads',
+                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                    ),
                     onTap: () {
                       Navigator.pop(ctx);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PdfViewerScreen(
-                            path: filePath,
-                            title: p.basename(filePath),
-                          ),
-                        ),
-                      );
+                      FileOpenerService.openPdf(context, filePath);
                     },
                   );
                 },

@@ -12,7 +12,7 @@ import '../../widgets/ad_banner_widget.dart';
 import '../../models/pdf_models.dart';
 
 import '../split_pdf/split_pdf_screen.dart' show SplitPdfScreen;
-import '../viewer/pdf_viewer_screen.dart';
+import '../../services/file_opener_service.dart';
 import 'package:share_plus/share_plus.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -377,13 +377,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 final pdfProv = context.read<PdfProvider>();
                 if (value == 'open' && path != null) {
                   if (!mounted) return;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          PdfViewerScreen(path: path, title: file.name),
-                    ),
-                  );
+                  await FileOpenerService.openPdf(context, path);
                 } else if (value == 'merge' && path != null) {
                   pdfProv.addFiles([
                     PdfFile(
@@ -443,13 +437,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: file.path == null
                 ? null
                 : () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            PdfViewerScreen(path: file.path!, title: file.name),
-                      ),
-                    );
+                    FileOpenerService.openPdf(context, file.path!);
                   },
           ),
         );

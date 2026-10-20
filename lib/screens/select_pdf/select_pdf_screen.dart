@@ -8,7 +8,7 @@ import '../../providers/pdf_provider.dart';
 import '../../models/pdf_models.dart';
 import '../../widgets/output_file_name_field.dart';
 import '../processing/processing_screen.dart';
-import '../viewer/pdf_viewer_screen.dart';
+import '../../services/file_opener_service.dart';
 
 class SelectPdfScreen extends StatefulWidget {
   const SelectPdfScreen({super.key});
@@ -305,15 +305,7 @@ class _SelectPdfScreenState extends State<SelectPdfScreen> {
             onTap: () {
               final path = file.path;
               if (path != null && path.isNotEmpty) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => PdfViewerScreen(
-                      path: path,
-                      title: file.name,
-                    ),
-                  ),
-                );
+                FileOpenerService.openPdf(context, path);
               }
             },
             leading: Container(

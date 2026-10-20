@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'pdf_theme_extension.dart';
 
 class AppTheme {
@@ -35,20 +34,20 @@ class AppTheme {
         outline: _lightBorder,
       ),
       scaffoldBackgroundColor: _lightBg,
-      textTheme: GoogleFonts.interTextTheme().copyWith(
-        titleLarge: GoogleFonts.inter(
+      textTheme: const TextTheme().copyWith(
+        titleLarge: const TextStyle(
           color: _lightText,
           fontWeight: FontWeight.bold,
         ),
-        bodyLarge: GoogleFonts.inter(color: _lightText),
-        bodyMedium: GoogleFonts.inter(color: _lightSecondaryText),
+        bodyLarge: const TextStyle(color: _lightText),
+        bodyMedium: const TextStyle(color: _lightSecondaryText),
       ),
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: _lightBg,
         foregroundColor: _lightText,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: TextStyle(
           color: _lightText,
           fontSize: 18,
           fontWeight: FontWeight.w600,
@@ -87,20 +86,20 @@ class AppTheme {
         outline: _darkBorder,
       ),
       scaffoldBackgroundColor: _darkBg,
-      textTheme: GoogleFonts.interTextTheme().copyWith(
-        titleLarge: GoogleFonts.inter(
+      textTheme: const TextTheme().copyWith(
+        titleLarge: const TextStyle(
           color: _darkText,
           fontWeight: FontWeight.bold,
         ),
-        bodyLarge: GoogleFonts.inter(color: _darkText),
-        bodyMedium: GoogleFonts.inter(color: _darkSecondaryText),
+        bodyLarge: const TextStyle(color: _darkText),
+        bodyMedium: const TextStyle(color: _darkSecondaryText),
       ),
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: _darkBg,
         foregroundColor: _darkText,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: TextStyle(
           color: _darkText,
           fontSize: 18,
           fontWeight: FontWeight.w600,

@@ -67,3 +67,54 @@ invoice_march_pages_4-6.pdf
 For split every page
 invoice_march_page_1.pdf
 invoice_march_page_2.pdf
+
+
+---
+
+## 📦 Key PDF & File Packages Architecture
+
+| Package | What it does | Why it's needed |
+| :--- | :--- | :--- |
+| **`pdf_manipulator`** | ⚙️ Core Engine (Native) | Does the actual merging, splitting, and deleting of PDF files in the background using native code. Cannot be touched. |
+| **`open_filex`** | 🚀 System App Launcher | Has no PDF code. It only tells Android: "Open this file with Google Drive / Adobe Acrobat". Tiny (< 100 KB) and allowed us to delete the heavy in-app viewer. |
+| **`pdfx`** | 🖼️ Thumbnail & Image Renderer | `pdf_manipulator` cannot draw images or show previews. `pdfx` converts PDF pages into images for the 1st page preview on the Success screen and the pages grid on the Split screen. |
+| **`syncfusion_flutter_pdf`** | 📄 Dart PDF Editor | Currently used in only one place: in `pdf_service.dart` when a user rearranges/reorders custom pages during Split. |
+
+
+The Real Problem: "Remove Ads" Alone Doesn't Sell
+
+You correctly noticed the catch: if "Remove Ads" is the only feature in Pro, users have very little motivation to pay ₹99 or ₹399 because:
+
+Banner ads are quiet and non-intrusive anyway.
+If they really care, they can just turn off Wi-Fi.
+
+To get real paying customers, Pro must offer actual utility features, not just "No Ads".
+
+3. How Top PDF Apps Solve This (Without Blocking Offline Use)
+
+IMPORTANT
+
+Never block offline use. You are 100% right: forcing internet connection for a local PDF tool will lead to 1-star reviews and uninstalls. Keep basic merge and split 100% offline and free.
+
+Instead, monetize using Feature & Volume Limits:
+
+Strategy A: Batch / Quantity Limits (Most Effective)
+Free: Merge up to 3 files at a time.
+Pro: Unlimited files at once (merge 10, 20, 50 documents).
+Why it works: Casual users who merge 2 files stay happy and leave 5-star reviews. Office workers and students who need to merge 15 chapters or invoices happily pay for Pro.
+Strategy B: Advanced Tools (Roadmap)
+
+Your pdf_manipulator package already contains built-in capabilities that you haven't exposed in the UI yet! You can make these Pro-only features:
+
+🔒 Encrypt / Password Protect PDF (Pro)
+🔓 Decrypt / Remove Password from PDF (Pro)
+🗜️ PDF Compressor (reduce large PDF file sizes) (Pro)
+💧 Add Watermark / Stamp (Pro)
+Strategy C: "Remove Ads" as a Bonus, Not the Main Pitch
+
+On your Pro purchase screen, position it like this:
+
+⚡ Unlimited Batch Merging (10+ files at once)
+🔒 Password Protection & Encryption
+⚡ Priority Processing Speed
+✨ 100% Ad-Free Experience
