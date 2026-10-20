@@ -5,10 +5,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <application>
-        <!-- ⚠️ REPLACE THIS with your real AdMob App ID before publishing -->
+        <!--  your real AdMob App ID  -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="YOUR_REAL_ADMOB_APP_ID"
+            android:value="ca-app-pub-3285536359619016~9921971404"
             tools:replace="android:value" />
     </application>
 </manifest>

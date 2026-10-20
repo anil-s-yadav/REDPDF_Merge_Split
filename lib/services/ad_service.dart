@@ -35,11 +35,11 @@ class AdService {
     if (kIsWeb) return '';
     if (Platform.isAndroid) {
       return kReleaseMode
-          ? 'YOUR_REAL_ANDROID_BANNER_ID' // TODO: replace with your real Android banner ID
+          ? 'ca-app-pub-3285536359619016/6552949916' //  real Android banner ID
           : 'ca-app-pub-3940256099942544/6300978111'; // Google test banner
     } else if (Platform.isIOS) {
       return kReleaseMode
-          ? 'YOUR_REAL_IOS_BANNER_ID' // TODO: replace with your real iOS banner ID
+          ? 'YOUR_REAL_IOS_BANNER_ID' // replace with your real iOS banner ID
           : 'ca-app-pub-3940256099942544/2934735716'; // Google test banner
     }
     return '';
@@ -50,11 +50,11 @@ class AdService {
     if (kIsWeb) return '';
     if (Platform.isAndroid) {
       return kReleaseMode
-          ? 'YOUR_REAL_ANDROID_REWARDED_ID' // TODO: replace with your real Android rewarded ID
+          ? 'ca-app-pub-3285536359619016/2954731664' //  real Android rewarded ID
           : 'ca-app-pub-3940256099942544/5224354917'; // Google test rewarded
     } else if (Platform.isIOS) {
       return kReleaseMode
-          ? 'YOUR_REAL_IOS_REWARDED_ID' // TODO: replace with your real iOS rewarded ID
+          ? 'YOUR_REAL_IOS_REWARDED_ID' //  replace with your real iOS rewarded ID
           : 'ca-app-pub-3940256099942544/1712485313'; // Google test rewarded
     }
     return '';
@@ -76,7 +76,9 @@ class AdService {
 
       final status = await MobileAds.instance.initialize();
       _isInitialized = true;
-      log('[AdMob] Initialized. Mode: ${kReleaseMode ? "RELEASE (live ads)" : "DEBUG (test ads)"}');
+      log(
+        '[AdMob] Initialized. Mode: ${kReleaseMode ? "RELEASE (live ads)" : "DEBUG (test ads)"}',
+      );
       log('[AdMob] Banner Unit: $bannerAdUnitId');
       log('[AdMob] Adapter statuses: ${status.adapterStatuses}');
       // Preload the first voluntary rewarded ad for the Help Us screen
@@ -87,7 +89,10 @@ class AdService {
   }
 
   /// Preload a Rewarded Ad so it's ready when user wants to support
-  void loadRewardedAd({VoidCallback? onLoaded, Function(LoadAdError)? onFailed}) {
+  void loadRewardedAd({
+    VoidCallback? onLoaded,
+    Function(LoadAdError)? onFailed,
+  }) {
     if (kIsWeb) return;
     if (_rewardedAd != null || _isRewardedLoading) {
       onLoaded?.call();
@@ -111,7 +116,9 @@ class AdService {
           onLoaded?.call();
         },
         onAdFailedToLoad: (LoadAdError error) {
-          log('Rewarded Ad failed to load: ${error.message} (code: ${error.code})');
+          log(
+            'Rewarded Ad failed to load: ${error.message} (code: ${error.code})',
+          );
           _rewardedAd = null;
           _isRewardedLoading = false;
           onFailed?.call(error);
@@ -134,9 +141,12 @@ class AdService {
     if (_rewardedAd == null) {
       // Try to load and notify caller
       loadRewardedAd(
-        onFailed: (error) => onAdFailedToShow?.call('Failed to load ad: ${error.message}'),
+        onFailed: (error) =>
+            onAdFailedToShow?.call('Failed to load ad: ${error.message}'),
       );
-      onAdFailedToShow?.call('Ad is still preparing. Please try again in a moment!');
+      onAdFailedToShow?.call(
+        'Ad is still preparing. Please try again in a moment!',
+      );
       return false;
     }
 
@@ -165,12 +175,13 @@ class AdService {
     );
 
     await ad.show(
-      onUserEarnedReward: (AdWithoutView adWithoutView, RewardItem reward) async {
-        log('User earned reward: ${reward.amount} ${reward.type}');
-        userEarnedReward = true;
-        await incrementAdWatchCount();
-        onUserEarnedReward(reward);
-      },
+      onUserEarnedReward:
+          (AdWithoutView adWithoutView, RewardItem reward) async {
+            log('User earned reward: ${reward.amount} ${reward.type}');
+            userEarnedReward = true;
+            await incrementAdWatchCount();
+            onUserEarnedReward(reward);
+          },
     );
 
     return userEarnedReward;
