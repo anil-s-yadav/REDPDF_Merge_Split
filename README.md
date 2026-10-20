@@ -118,3 +118,14 @@ On your Pro purchase screen, position it like this:
 🔒 Password Protection & Encryption
 ⚡ Priority Processing Speed
 ✨ 100% Ad-Free Experience
+
+======================================================
+
+This 4-plan strategy works very well.
+
+It creates a seamless psychological pricing ladder where every type of user finds a home:
+
+1 Month (₹29): The "Impulse" buy. Anyone with a one-time college/job task pays instantly without thinking.
+6 Months (₹99): The "Student / Project" buy. Under ₹100 is a huge psychological sweet spot for UPI payments.
+1 Year (₹189): The "Smart Deal". For just ₹90 more than 6 months, they get a whole year (Badge: MOST POPULAR).
+Lifetime (₹999): The "One-Time" buy (Badge: BEST VALUE).
