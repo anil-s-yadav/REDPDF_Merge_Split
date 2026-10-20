@@ -147,7 +147,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Center(
                   child: AdBannerWidget(bannerType: AdBannerType.standard),
                 ),
-                SizedBox(height: size.height * 0.015),
               ],
             ),
           ),

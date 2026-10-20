@@ -224,10 +224,7 @@ class AdService {
 
 enum AdBannerType {
   standard, // 320 x 50
-  large, // 320 x 100
   mediumRectangle, // 300 x 250
-  square1x1, // 300 x 300
-  fourByThree, // 320 x 240
   adaptive, // full-width anchored
 }
 
@@ -328,16 +325,10 @@ class BannerAdCache {
     switch (type) {
       case AdBannerType.standard:
         return AdSize.banner;
-      case AdBannerType.large:
-        return AdSize.largeBanner;
       case AdBannerType.mediumRectangle:
         return AdSize.mediumRectangle;
-      case AdBannerType.square1x1:
-        return const AdSize(width: 300, height: 300);
-      case AdBannerType.fourByThree:
-        return const AdSize(width: 320, height: 240);
       case AdBannerType.adaptive:
-        return AdSize.largeBanner;
+        return AdSize.banner;
     }
   }
 

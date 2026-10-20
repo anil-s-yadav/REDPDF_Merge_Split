@@ -740,7 +740,7 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
               ),
               const SizedBox(width: 6),
               Text(
-                'Our Featured Partner (4:3 / Rich Banner)',
+                'Featured Partner',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -752,8 +752,8 @@ class _HelpUsScreenState extends State<HelpUsScreen> {
         ),
         const Center(
           child: AdBannerWidget(
-            bannerType: AdBannerType.fourByThree,
-            showBadge: true,
+            bannerType: AdBannerType.mediumRectangle,
+            showBadge: false,
           ),
         ),
       ],

@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:provider/provider.dart';
+import '../providers/user_provider.dart';
 import '../services/ad_service.dart';
 
 // Re-export so any widget importing ad_banner_widget.dart has access
@@ -19,7 +21,7 @@ class AdBannerWidget extends StatefulWidget {
     super.key,
     this.bannerType = AdBannerType.standard,
     this.margin,
-    this.showBadge = true,
+    this.showBadge = false,
   });
 
   @override
@@ -123,14 +125,8 @@ class _AdBannerWidgetState extends State<AdBannerWidget>
     switch (widget.bannerType) {
       case AdBannerType.standard:
         return AdSize.banner;
-      case AdBannerType.large:
-        return AdSize.largeBanner;
       case AdBannerType.mediumRectangle:
         return AdSize.mediumRectangle;
-      case AdBannerType.square1x1:
-        return const AdSize(width: 300, height: 300);
-      case AdBannerType.fourByThree:
-        return const AdSize(width: 320, height: 240);
       case AdBannerType.adaptive:
         final width = MediaQuery.sizeOf(context).width.truncate();
         final safeWidth = width > 0 ? width : 320;
@@ -149,6 +145,10 @@ class _AdBannerWidgetState extends State<AdBannerWidget>
   @override
   Widget build(BuildContext context) {
     if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
+      return const SizedBox.shrink();
+    }
+    final isPremium = context.watch<UserProvider?>()?.isPremium ?? false;
+    if (isPremium) {
       return const SizedBox.shrink();
     }
 

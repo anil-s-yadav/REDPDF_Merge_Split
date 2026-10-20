@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
 import '../../providers/theme_provider.dart';
+import '../../providers/user_provider.dart';
 import '../../widgets/ad_banner_widget.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -33,6 +34,8 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
+    final userProvider = context.watch<UserProvider>();
+    final isPremium = userProvider.isPremium;
     final pdfTheme = Theme.of(context).extension<PdfThemeExtension>()!;
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -73,46 +76,58 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             children: [
               GestureDetector(
-                onTap: () =>
-                    Navigator.pushNamed(context, '/upgrade'),
+                onTap: () => Navigator.pushNamed(context, '/upgrade'),
                 child: _buildSettingsItem(
                   context,
                   colorScheme,
                   isDark: isDark,
-                  accentColor: const Color(0xFFF59E0B),
-                  icon: Icons.block_flipped,
-                  title: 'Remove Ads',
-                  subtitle: 'Remove all ads & faster processing',
+                  accentColor: isPremium
+                      ? const Color(0xFF10B981)
+                      : const Color(0xFFF59E0B),
+                  icon: Icons.workspace_premium_rounded,
+                  title: isPremium ? 'RedPDF PRO Active' : 'Upgrade to RedPDF PRO',
+                  subtitle: isPremium
+                      ? 'Ad-free experience & unlimited processing'
+                      : 'Remove all ads • Faster processing • From ₹29',
                   trailing: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
                       vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                      gradient: LinearGradient(
+                        colors: isPremium
+                            ? const [Color(0xFF10B981), Color(0xFF059669)]
+                            : const [Color(0xFFF59E0B), Color(0xFFD97706)],
                       ),
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                          color: (isPremium
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFFF59E0B))
+                              .withValues(alpha: 0.3),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.bolt, color: Colors.white, size: 14),
-                        SizedBox(width: 3),
+                        Icon(
+                          isPremium ? Icons.check_circle_rounded : Icons.bolt,
+                          color: Colors.white,
+                          size: 13,
+                        ),
+                        const SizedBox(width: 4),
                         Text(
-                          'PRO',
-                          style: TextStyle(
+                          isPremium ? 'ACTIVE' : '₹29 / mo',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 11,
-                            letterSpacing: 0.5,
+                            letterSpacing: 0.4,
                           ),
                         ),
                       ],

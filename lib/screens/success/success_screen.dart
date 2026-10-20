@@ -110,7 +110,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
               SizedBox(height: size.height * 0.01),
               // Banner ad here
               const Center(
-                child: AdBannerWidget(bannerType: AdBannerType.fourByThree),
+                child: AdBannerWidget(bannerType: AdBannerType.standard),
               ),
               SizedBox(height: size.height * 0.01),
               _buildActionButtons(context, isSplit, pdfTheme, colorScheme),
