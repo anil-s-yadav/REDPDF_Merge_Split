@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:stitch/widgets/ad_banner_widget.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:pdfx/pdfx.dart' as pdfx;
 
@@ -466,6 +467,9 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   //banner ad here
+                  const Center(
+                    child: AdBannerWidget(bannerType: AdBannerType.standard),
+                  ),
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -576,6 +580,12 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
 
                   const SizedBox(height: 10),
                   _buildModeDescription(),
+                  // SizedBox(height: size.height * 0.015),
+                  // Banner ad here
+                  const Center(
+                    child: AdBannerWidget(bannerType: AdBannerType.standard),
+                  ),
+                  // SizedBox(height: size.height * 0.015),
                 ],
               ),
             ),
@@ -631,6 +641,22 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
                           ),
                         ],
                       ),
+                    ),
+                    const SizedBox(height: 5),
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.lock_outline, size: 14, color: Colors.grey),
+                        SizedBox(width: 4),
+                        Text(
+                          'SECURE, OFFLINE AND FAST PROCESSING',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 10,
+                            letterSpacing: 1.1,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:stitch/widgets/ad_banner_widget.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
 import '../../providers/pdf_provider.dart';
@@ -137,9 +138,10 @@ class _SelectPdfScreenState extends State<SelectPdfScreen> {
       ),
       body: Column(
         children: [
-          // SizedBox(height: size.height * 0.03),
-          // banner ad here
-          // SizedBox(height: size.height * 0.04),
+          const Center(
+            child: AdBannerWidget(bannerType: AdBannerType.standard),
+          ),
+          SizedBox(height: size.height * 0.01),
           _buildSelectedFilesHeader(
             colorScheme,
             pdfTheme,
@@ -453,7 +455,7 @@ class _SelectPdfScreenState extends State<SelectPdfScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 5),
           const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -468,6 +470,10 @@ class _SelectPdfScreenState extends State<SelectPdfScreen> {
                 ),
               ),
             ],
+          ),
+
+          const Center(
+            child: AdBannerWidget(bannerType: AdBannerType.standard),
           ),
         ],
       ),

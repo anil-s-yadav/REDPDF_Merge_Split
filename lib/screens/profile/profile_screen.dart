@@ -14,11 +14,19 @@ class ProfileScreen extends StatelessWidget {
   Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
       }
-    } catch (e) {
-      log(e.toString());
+    } catch (_) {
+      try {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      } catch (e) {
+        log('Could not launch $url: $e');
+      }
     }
   }
 
@@ -64,9 +72,6 @@ class ProfileScreen extends StatelessWidget {
           ),
           child: Column(
             children: [
-              const SizedBox(height: 8),
-
-              // ── Remove Ads Tile (Clean outside tile) ──
               GestureDetector(
                 onTap: () =>
                     _showRemoveAdsModal(context, pdfTheme, colorScheme, isDark),

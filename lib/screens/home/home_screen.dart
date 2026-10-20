@@ -96,20 +96,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       onPressed: () {
                         Navigator.pushNamed(context, '/upgrade');
                       },
-                      icon: const Icon(Icons.workspace_premium_outlined),// design it red dot if not active and green dot when user is prouser. also make it bold and golden color.
+                      icon: const Icon(
+                        Icons.workspace_premium_outlined,
+                      ), // design it red dot if not active and green dot when user is prouser. also make it bold and golden color.
                     ),
                   ],
                 ),
-                SizedBox(height: size.height * 0.02),
+                SizedBox(height: size.height * 0.025),
                 _buildActionButtons(context, pdfTheme, size),
-                SizedBox(height: size.height * 0.015),
+                SizedBox(height: size.height * 0.025),
                 // Banner ad here
                 const Center(
-                  child: AdBannerWidget(
-                    bannerType: AdBannerType.standard,
-                  ),
+                  child: AdBannerWidget(bannerType: AdBannerType.standard),
                 ),
-                SizedBox(height: size.height * 0.015),
+                // SizedBox(height: size.height * 0.01),
                 _buildTabsAndSearch(colorScheme, pdfTheme, size),
                 SizedBox(height: size.height * 0.02),
                 Expanded(
@@ -141,6 +141,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
+
+                SizedBox(height: size.height * 0.015),
+                // Banner ad here
+                const Center(
+                  child: AdBannerWidget(bannerType: AdBannerType.standard),
+                ),
+                SizedBox(height: size.height * 0.015),
               ],
             ),
           ),

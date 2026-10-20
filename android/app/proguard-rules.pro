@@ -13,3 +13,8 @@
 # (Optional but safe)
 -keep class kotlin.** { *; }
 -dontwarn kotlin.**
+
+# ===== Google Mobile Ads (AdMob) =====
+-keep class com.google.android.gms.ads.** { *; }
+-keep class com.google.ads.** { *; }
+-dontwarn com.google.android.gms.ads.**

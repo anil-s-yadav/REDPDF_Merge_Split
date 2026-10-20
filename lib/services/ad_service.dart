@@ -18,32 +18,48 @@ class AdService {
   bool get isRewardedAdReady => _rewardedAd != null;
   bool get isRewardedLoading => _isRewardedLoading;
 
-  /// Official Google AdMob Test Ad Unit IDs
-  /// Banner Test IDs:
-  /// Android: ca-app-pub-3940256099942544/6300978111
-  /// iOS: ca-app-pub-3940256099942544/2934735716
+  // ── ⚠️  AD UNIT IDs ──────────────────────────────────────────────────────
+  // In DEBUG / kProfileMode → Google's official test IDs are used (safe, no policy risk).
+  // In RELEASE (kReleaseMode) → YOUR real AdMob unit IDs are used.
+  //
+  // TODO (YOUR ACTION): Replace the placeholder strings marked with
+  // "YOUR_REAL_..." with the actual Ad Unit IDs from your AdMob console.
+  // Also replace the App ID in AndroidManifest.xml and iOS Info.plist.
+
+  /// Android App ID (for AndroidManifest.xml)
+  /// Test:  ca-app-pub-3940256099942544~3347511713
+  /// Real:  YOUR_REAL_ANDROID_APP_ID  (e.g. ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX)
+
+  /// Banner Ad Unit IDs
   static String get bannerAdUnitId {
     if (kIsWeb) return '';
     if (Platform.isAndroid) {
-      return 'ca-app-pub-3940256099942544/6300978111';
+      return kReleaseMode
+          ? 'YOUR_REAL_ANDROID_BANNER_ID' // TODO: replace with your real Android banner ID
+          : 'ca-app-pub-3940256099942544/6300978111'; // Google test banner
     } else if (Platform.isIOS) {
-      return 'ca-app-pub-3940256099942544/2934735716';
+      return kReleaseMode
+          ? 'YOUR_REAL_IOS_BANNER_ID' // TODO: replace with your real iOS banner ID
+          : 'ca-app-pub-3940256099942544/2934735716'; // Google test banner
     }
     return '';
   }
 
-  /// Rewarded Test IDs (Used ONLY in Help Us voluntary support tab)
-  /// Android: ca-app-pub-3940256099942544/5224354917
-  /// iOS: ca-app-pub-3940256099942544/1712485313
+  /// Rewarded Ad Unit IDs (Help Us screen only — voluntary)
   static String get rewardedAdUnitId {
     if (kIsWeb) return '';
     if (Platform.isAndroid) {
-      return 'ca-app-pub-3940256099942544/5224354917';
+      return kReleaseMode
+          ? 'YOUR_REAL_ANDROID_REWARDED_ID' // TODO: replace with your real Android rewarded ID
+          : 'ca-app-pub-3940256099942544/5224354917'; // Google test rewarded
     } else if (Platform.isIOS) {
-      return 'ca-app-pub-3940256099942544/1712485313';
+      return kReleaseMode
+          ? 'YOUR_REAL_IOS_REWARDED_ID' // TODO: replace with your real iOS rewarded ID
+          : 'ca-app-pub-3940256099942544/1712485313'; // Google test rewarded
     }
     return '';
   }
+  // ─────────────────────────────────────────────────────────────────────────
 
   /// Initialize Mobile Ads SDK
   Future<void> initialize() async {
@@ -51,13 +67,22 @@ class AdService {
     if (_isInitialized) return;
 
     try {
+      // In debug builds, configure test devices so you only see
+      // test ads on real hardware (optional but recommended).
+      // Add your device ID from logcat: "Use RequestConfiguration..."
+      // e.g. MobileAds.instance.updateRequestConfiguration(
+      //   RequestConfiguration(testDeviceIds: ['YOUR_DEVICE_ID_FROM_LOGCAT']),
+      // );
+
       final status = await MobileAds.instance.initialize();
       _isInitialized = true;
-      log('Google Mobile Ads initialized successfully: ${status.adapterStatuses}');
+      log('[AdMob] Initialized. Mode: ${kReleaseMode ? "RELEASE (live ads)" : "DEBUG (test ads)"}');
+      log('[AdMob] Banner Unit: $bannerAdUnitId');
+      log('[AdMob] Adapter statuses: ${status.adapterStatuses}');
       // Preload the first voluntary rewarded ad for the Help Us screen
       loadRewardedAd();
     } catch (e) {
-      log('Error initializing Google Mobile Ads: $e');
+      log('[AdMob] Error initializing: $e');
     }
   }
 

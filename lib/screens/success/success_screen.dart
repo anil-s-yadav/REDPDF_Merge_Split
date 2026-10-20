@@ -56,7 +56,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
         padding: EdgeInsets.symmetric(horizontal: size.width * 0.06),
         child: Column(
           children: [
-            SizedBox(height: size.height * 0.03),
+            // SizedBox(height: size.height * 0.03),
             _buildSuccessAnimation(isSplit, pdfTheme),
             SizedBox(height: size.height * 0.03),
             FittedBox(
@@ -107,8 +107,8 @@ class _SuccessScreenState extends State<SuccessScreen> {
   Widget _buildSuccessAnimation(bool isSplit, PdfThemeExtension pdfTheme) {
     final color = isSplit ? pdfTheme.splitPrimary : pdfTheme.mergePrimary;
     return Container(
-          width: 150,
-          height: 150,
+          width: 80,
+          height: 80,
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,
@@ -421,9 +421,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                 if (path == null) return;
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('File is saved to Downloads'),
-                    ),
+                    const SnackBar(content: Text('File is saved to Downloads')),
                   );
                 }
               },

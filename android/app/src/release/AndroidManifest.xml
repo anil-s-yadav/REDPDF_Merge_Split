@@ -1,0 +1,14 @@
+<!-- Release manifest — merged with main AndroidManifest.xml for RELEASE builds only.
+     TODO (YOUR ACTION): Replace YOUR_REAL_ADMOB_APP_ID below with your actual
+     AdMob App ID from https://apps.admob.com → App Settings → App ID.
+     Format: ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application>
+        <!-- ⚠️ REPLACE THIS with your real AdMob App ID before publishing -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="YOUR_REAL_ADMOB_APP_ID"
+            tools:replace="android:value" />
+    </application>
+</manifest>
