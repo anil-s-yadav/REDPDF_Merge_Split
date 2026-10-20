@@ -8,6 +8,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
 import '../../providers/pdf_provider.dart';
 import '../../widgets/action_pill.dart';
+import '../../widgets/ad_banner_widget.dart';
 import '../../models/pdf_models.dart';
 
 import '../split_pdf/split_pdf_screen.dart' show SplitPdfScreen;
@@ -86,11 +87,29 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                SizedBox(height: size.height * 0.03),
-                _buildHeader(context, colorScheme),
-                SizedBox(height: size.height * 0.04),
+                // SizedBox(height: size.height * 0.03),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildHeader(context, colorScheme),
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/upgrade');
+                      },
+                      icon: const Icon(Icons.workspace_premium_outlined),// design it red dot if not active and green dot when user is prouser. also make it bold and golden color.
+                    ),
+                  ],
+                ),
+                SizedBox(height: size.height * 0.02),
                 _buildActionButtons(context, pdfTheme, size),
-                SizedBox(height: size.height * 0.04),
+                SizedBox(height: size.height * 0.015),
+                // Banner ad here
+                const Center(
+                  child: AdBannerWidget(
+                    bannerType: AdBannerType.standard,
+                  ),
+                ),
+                SizedBox(height: size.height * 0.015),
                 _buildTabsAndSearch(colorScheme, pdfTheme, size),
                 SizedBox(height: size.height * 0.02),
                 Expanded(
@@ -130,10 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeader(
-    BuildContext context,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildHeader(BuildContext context, ColorScheme colorScheme) {
     return FittedBox(
       child: Row(
         spacing: 20,
@@ -143,8 +159,8 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'RedPdf - Merge and Split',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                'RedPdf - Merge & Split',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: colorScheme.onSurface.withValues(alpha: 0.75),
                   fontWeight: FontWeight.bold,
                 ),
@@ -152,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 4),
               Text(
                 'Combine or split your PDF files with ease. ',
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
           ),

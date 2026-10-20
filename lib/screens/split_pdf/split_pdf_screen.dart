@@ -461,185 +461,184 @@ class _SplitPdfScreenState extends State<SplitPdfScreen> {
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(size.width * 0.03),
+              padding: EdgeInsets.symmetric(horizontal: size.width * 0.03),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Card(
-              // padding: const EdgeInsets.all(16),
-              // decoration: BoxDecoration(
-              //   color: colorScheme.surface,
-
-              //   borderRadius: BorderRadius.circular(20),
-              //   border: Border.all(
-              //     color: pdfTheme.splitPrimary.withValues(alpha: 0.4),
-
-              //     width: 1,
-              //   ),
-              // ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 18,
-                ),
-                child: Column(
-                  children: [
-                    _buildSelectedFileTile(pdfTheme, colorScheme),
-                    const SizedBox(height: 16),
-                    if (path != null)
-                      Row(
+                children: [
+                  //banner ad here
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 18,
+                      ),
+                      child: Column(
                         children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => PdfViewerScreen(
-                                    path: path,
-                                    title: _inputName ?? 'PDF',
+                          _buildSelectedFileTile(pdfTheme, colorScheme),
+                          const SizedBox(height: 16),
+                          if (path != null)
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => PdfViewerScreen(
+                                          path: path,
+                                          title: _inputName ?? 'PDF',
+                                        ),
+                                      ),
+                                    ),
+                                    icon: const Icon(Icons.visibility_outlined),
+                                    label: const Text('Preview'),
                                   ),
                                 ),
-                              ),
-                              icon: const Icon(Icons.visibility_outlined),
-                              label: const Text('Preview'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: OutlinedButton.icon(
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: provider.isProcessing
+                                        ? null
+                                        : _pickPdf,
+                                    icon: const Icon(Icons.upload_file),
+                                    label: const Text('Change'),
+                                  ),
+                                ),
+                              ],
+                            )
+                          else
+                            ElevatedButton.icon(
                               onPressed: provider.isProcessing
                                   ? null
                                   : _pickPdf,
-                              icon: const Icon(Icons.upload_file),
-                              label: const Text('Change'),
+                              icon: const Icon(Icons.upload_file_rounded),
+                              label: const Text(
+                                'Select PDF',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: pdfTheme.splitPrimary,
+                                foregroundColor: Colors.white,
+                                minimumSize: const Size(double.infinity, 56),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
                             ),
-                          ),
                         ],
-                      )
-                    else
-                      ElevatedButton.icon(
-                        onPressed: provider.isProcessing ? null : _pickPdf,
-                        icon: const Icon(Icons.upload_file_rounded),
-                        label: const Text(
-                          'Select PDF',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: pdfTheme.splitPrimary,
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(double.infinity, 56),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
                       ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 30),
-            _buildTabToggle(pdfTheme, colorScheme),
-            const SizedBox(height: 16),
-
-            // ── mode body ──
-            if (_mode == _SplitMode.range) ...[
-              _buildRangeHeader(pdfTheme, provider.isProcessing),
-              const SizedBox(height: 12),
-              ..._buildRangeEditors(
-                colorScheme,
-                pdfTheme,
-                provider.isProcessing,
-              ),
-            ] else if (_mode == _SplitMode.extract) ...[
-              _buildExtractSection(
-                pdfTheme,
-                colorScheme,
-                provider.isProcessing,
-              ),
-            ] else if (_mode == _SplitMode.delete) ...[
-              _buildDeleteSection(pdfTheme, colorScheme, provider.isProcessing),
-            ] else if (_mode == _SplitMode.everyPage) ...[
-              const Text(
-                'Split every page',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _pageCount == null
-                    ? 'Each page will become its own PDF.'
-                    : '$_pageCount PDFs will be created (one per page).',
-                style: const TextStyle(color: Colors.grey),
-              ),
-            ],
-
-            const SizedBox(height: 10),
-            _buildModeDescription(),
-          ],
-        ),
-      ),
-    ),
-    // Pinned Bottom Section
-    Container(
-      padding: EdgeInsets.all(size.width * 0.05),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (provider.isProcessing)
-              const LinearProgressIndicator()
-            else ...[
-              if (canSplit)
-                OutputFileNameField(
-                  controller: _fileNameController,
-                  accentColor: pdfTheme.splitPrimary,
-                  hintText: 'e.g. MySplitPDF',
-                ),
-              ElevatedButton(
-                onPressed: canSplit ? () => _runSplit(provider) : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: pdfTheme.splitPrimary,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 60),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    ),
                   ),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.call_split_rounded),
-                    SizedBox(width: 12),
-                    Text(
-                      'Split PDF Now',
+                  const SizedBox(height: 30),
+                  _buildTabToggle(pdfTheme, colorScheme),
+                  const SizedBox(height: 16),
+
+                  // ── mode body ──
+                  if (_mode == _SplitMode.range) ...[
+                    _buildRangeHeader(pdfTheme, provider.isProcessing),
+                    const SizedBox(height: 12),
+                    ..._buildRangeEditors(
+                      colorScheme,
+                      pdfTheme,
+                      provider.isProcessing,
+                    ),
+                  ] else if (_mode == _SplitMode.extract) ...[
+                    _buildExtractSection(
+                      pdfTheme,
+                      colorScheme,
+                      provider.isProcessing,
+                    ),
+                  ] else if (_mode == _SplitMode.delete) ...[
+                    _buildDeleteSection(
+                      pdfTheme,
+                      colorScheme,
+                      provider.isProcessing,
+                    ),
+                  ] else if (_mode == _SplitMode.everyPage) ...[
+                    const Text(
+                      'Split every page',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _pageCount == null
+                          ? 'Each page will become its own PDF.'
+                          : '$_pageCount PDFs will be created (one per page).',
+                      style: const TextStyle(color: Colors.grey),
+                    ),
                   ],
-                ),
+
+                  const SizedBox(height: 10),
+                  _buildModeDescription(),
+                ],
               ),
-            ],
-          ],
-        ),
+            ),
+          ),
+          // Pinned Bottom Section
+          Container(
+            padding: EdgeInsets.all(size.width * 0.05),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (provider.isProcessing)
+                    const LinearProgressIndicator()
+                  else ...[
+                    if (canSplit)
+                      OutputFileNameField(
+                        controller: _fileNameController,
+                        accentColor: pdfTheme.splitPrimary,
+                        hintText: 'e.g. MySplitPDF',
+                      ),
+                    ElevatedButton(
+                      onPressed: canSplit ? () => _runSplit(provider) : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: pdfTheme.splitPrimary,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 60),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.call_split_rounded),
+                          SizedBox(width: 12),
+                          Text(
+                            'Split PDF Now',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
-    ),
-  ],
-),
     );
   }
 

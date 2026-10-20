@@ -26,7 +26,7 @@ class ActionPill extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          height: (size.height * 0.22 > 160) ? size.height * 0.22 : 160,
+          height: (size.height * 0.22 > 160) ? size.height * 0.18 : 120,
           decoration: BoxDecoration(
             color: backgroundColor,
             border: Border.all(color: textColor.withAlpha(80), width: 0.5),

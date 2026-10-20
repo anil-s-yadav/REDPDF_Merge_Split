@@ -25,6 +25,8 @@ class AppConstants {
       'https://play.google.com/store/apps/dev?id=8832237281097064209';
   static const String privacyPolicyUrl =
       'https://anil-s-yadav.github.io/REDPDF-PrivacyPolicy/';
+  static const String termsOfServiceUrl =
+      'https://anil-s-yadav.github.io/REDPDF-PrivacyPolicy/terms.html';
 
   // Assets
   static const String googlePlayIconAsset =

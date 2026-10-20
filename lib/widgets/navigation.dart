@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:stitch/screens/home/home_screen.dart';
+import 'package:stitch/screens/help_us/help_us_screen.dart';
 import 'package:stitch/screens/profile/profile_screen.dart';
 import 'package:stitch/core/theme/pdf_theme_extension.dart';
 
@@ -12,7 +13,11 @@ class NavigationPage extends StatefulWidget {
 }
 
 class _NavigationPageState extends State<NavigationPage> {
-  final List<Widget> _pages = [const HomeScreen(), const ProfileScreen()];
+  final List<Widget> _pages = [
+    const HomeScreen(),
+    const HelpUsScreen(),
+    const ProfileScreen(),
+  ];
 
   int _currentIndex = 0;
 
@@ -29,7 +34,7 @@ class _NavigationPageState extends State<NavigationPage> {
       ),
       extendBody: true,
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(left: 60, right: 60, bottom: 24),
+        padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
         child: Container(
           height: 64,
           decoration: BoxDecoration(
@@ -67,6 +72,14 @@ class _NavigationPageState extends State<NavigationPage> {
               ),
               _buildNavItem(
                 index: 1,
+                icon: Icons.volunteer_activism_rounded,
+                label: 'Help Us',
+                accentColor: const Color(0xFFEF4444),
+                colorScheme: colorScheme,
+                isDark: isDark,
+              ),
+              _buildNavItem(
+                index: 2,
                 icon: Icons.settings_rounded,
                 label: 'Settings',
                 accentColor: const Color(0xFF6366F1),
@@ -97,7 +110,7 @@ class _NavigationPageState extends State<NavigationPage> {
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
         padding: EdgeInsets.symmetric(
-          horizontal: isSelected ? 20 : 16,
+          horizontal: isSelected ? 16 : 12,
           vertical: 10,
         ),
         decoration: BoxDecoration(
@@ -111,7 +124,7 @@ class _NavigationPageState extends State<NavigationPage> {
           children: [
             Icon(
               icon,
-              size: 24,
+              size: 22,
               color: isSelected
                   ? accentColor
                   : isDark
@@ -123,13 +136,13 @@ class _NavigationPageState extends State<NavigationPage> {
               curve: Curves.easeInOut,
               child: isSelected
                   ? Padding(
-                      padding: const EdgeInsets.only(left: 8),
+                      padding: const EdgeInsets.only(left: 6),
                       child: Text(
                         label,
                         style: TextStyle(
                           color: accentColor,
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: 13,
                         ),
                       ),
                     )

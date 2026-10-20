@@ -1,5 +1,3 @@
-
-
 import java.util.Properties
 import java.io.FileInputStream
 
@@ -17,6 +15,10 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+kotlin {
+    jvmToolchain(17)
+}
+
 android {
     namespace = "com.legendarysoftware.marge_pdf_split_pdf"
     compileSdk = flutter.compileSdkVersion
@@ -25,10 +27,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
     defaultConfig {
@@ -42,7 +40,7 @@ android {
         versionName = flutter.versionName
     }
 
-     signingConfigs {
+    signingConfigs {
         create("release") {
             keyAlias = keystoreProperties["keyAlias"] as String?
             keyPassword = keystoreProperties["keyPassword"] as String?
@@ -58,13 +56,12 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
 
-        proguardFiles(
-            getDefaultProguardFile("proguard-android-optimize.txt"),
-            "proguard-rules.pro"
-        )
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
-
 }
 
 flutter {

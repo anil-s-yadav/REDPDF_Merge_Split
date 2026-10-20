@@ -1,0 +1,8 @@
+     Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Text(
+              "Merging Locked pdf is not possible, first get them unloack here.",
+              // "For smooth experience, unlock your locked PDFs before adding them.",
+              style: TextStyle(color: Colors.grey[600], fontSize: 13),
+            ),
+          ),

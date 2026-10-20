@@ -138,16 +138,8 @@ class _SelectPdfScreenState extends State<SelectPdfScreen> {
       body: Column(
         children: [
           // SizedBox(height: size.height * 0.03),
-          // _buildAddFilesContainer(context, pdfTheme, pdfProvider, size),
+          // banner ad here
           // SizedBox(height: size.height * 0.04),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Text(
-              "For smooth experience, unlock your locked PDFs before adding them.",
-              style: TextStyle(color: Colors.grey[600], fontSize: 13),
-            ),
-          ),
-          SizedBox(height: size.height * 0.02),
           _buildSelectedFilesHeader(
             colorScheme,
             pdfTheme,
