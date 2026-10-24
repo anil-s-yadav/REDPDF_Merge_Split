@@ -15,10 +15,14 @@ class AppConstants {
   static const double borderRadius24 = 24.0;
   static const double borderRadius32 = 32.0;
 
-  static const String appName = 'PDF Master';
-  static const String version = 'v1.3.0 (20)';
+  // ── App & Version Constants ────────────────────────────────────────────────
+  static const String appName = 'RedPDF';
+  static const String appVersion = '1.3.0';
+  static const int buildNumber = 20;
+  static const String version = 'v$appVersion ($buildNumber)';
 
   // App & Developer URLs
+  static const String supportEmail = 'anilyadav44x@gmail.com';
   static const String playStoreUrl =
       'https://play.google.com/store/apps/details?id=com.legendarysoftware.marge_pdf_split_pdf';
   static const String developerStoreUrl =

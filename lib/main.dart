@@ -12,11 +12,15 @@ import 'screens/success/success_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/upgrade/upgrade_screen.dart';
 import 'screens/split_pdf/split_pdf_screen.dart';
+import 'screens/help_support/help_support_screen.dart';
 import 'services/ad_service.dart';
+
+import 'services/billing_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AdService.instance.initialize();
+  await BillingService.instance.initialize();
 
   runApp(
     MultiProvider(
@@ -24,6 +28,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => PdfProvider()),
+        ChangeNotifierProvider.value(value: BillingService.instance),
       ],
       child: const MainApp(),
     ),
@@ -55,6 +60,7 @@ class MainApp extends StatelessWidget {
             '/profile': (context) => const ProfileScreen(),
             '/upgrade': (context) => const UpgradeScreen(),
             '/split-pdf': (context) => const SplitPdfScreen(),
+            '/help-support': (context) => const HelpSupportScreen(),
           },
         );
       },

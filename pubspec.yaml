@@ -28,6 +28,8 @@ dependencies:
   url_launcher: ^6.3.2
   in_app_review: ^2.0.10
   google_mobile_ads: ^9.1.0
+  in_app_purchase: ^3.3.1
+  in_app_purchase_android: ^0.5.5
 
 dev_dependencies:
   flutter_test:

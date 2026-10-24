@@ -8,6 +8,7 @@ import '../../core/theme/pdf_theme_extension.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/ad_banner_widget.dart';
+import '../help_support/help_support_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -42,9 +43,11 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: false,
         title: GestureDetector(
           onTap: () => _launchUrl(AppConstants.developerStoreUrl),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
                 "A product by:  ",
@@ -67,6 +70,52 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: InkWell(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const HelpSupportScreen()),
+              ),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(
+                    alpha: isDark ? 0.16 : 0.08,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: colorScheme.primary.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.help_outline_rounded,
+                      size: 16,
+                      color: colorScheme.primary,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      'FAQs & Help',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -85,7 +134,9 @@ class ProfileScreen extends StatelessWidget {
                       ? const Color(0xFF10B981)
                       : const Color(0xFFF59E0B),
                   icon: Icons.workspace_premium_rounded,
-                  title: isPremium ? 'RedPDF PRO Active' : 'Upgrade to RedPDF PRO',
+                  title: isPremium
+                      ? 'RedPDF PRO Active'
+                      : 'Upgrade to RedPDF PRO',
                   subtitle: isPremium
                       ? 'Ad-free experience & unlimited processing'
                       : 'Remove all ads • Faster processing • From ₹29',
@@ -103,10 +154,11 @@ class ProfileScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: (isPremium
-                                  ? const Color(0xFF10B981)
-                                  : const Color(0xFFF59E0B))
-                              .withValues(alpha: 0.3),
+                          color:
+                              (isPremium
+                                      ? const Color(0xFF10B981)
+                                      : const Color(0xFFF59E0B))
+                                  .withValues(alpha: 0.3),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
@@ -250,7 +302,7 @@ class ProfileScreen extends StatelessWidget {
       child: GestureDetector(
         onTap: () => _launchUrl(AppConstants.developerStoreUrl),
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -300,28 +352,13 @@ class ProfileScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          'Our Other Apps',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                            color: isDark
-                                ? Colors.white
-                                : const Color(0xFF312E81),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        const Text(
-                          'REDPDF',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 10,
-                            color: Colors.red,
-                          ),
-                        ),
-                      ],
+                    Text(
+                      'Our Other Apps',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: isDark ? Colors.white : const Color(0xFF312E81),
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(

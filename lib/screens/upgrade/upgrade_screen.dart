@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
 import '../../providers/user_provider.dart';
+import '../../services/billing_service.dart';
 
 class UpgradeScreen extends StatefulWidget {
   const UpgradeScreen({super.key});
@@ -18,38 +19,67 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
 
   final List<Map<String, dynamic>> _plans = const [
     {
-      'id': 'redpdf_pro_1month',
+      'id': BillingService.idMonth1,
       'title': '1 Month',
       'price': '₹29',
-      'period': '/ month',
+      'originalPrice': '',
+      'period': 'for 1 month',
       'desc': 'Remove ads & faster processing for 1 month',
       'badge': '',
     },
     {
-      'id': 'redpdf_pro_6months',
+      'id': BillingService.idMonths6,
       'title': '6 Months',
       'price': '₹99',
+      'originalPrice': '₹174',
       'period': 'for 6 months',
-      'desc': '₹16.5/mo • Remove ads & faster processing',
+      'desc': '₹16.5/mo • Save 43% compared to monthly',
       'badge': '',
     },
     {
-      'id': 'redpdf_pro_1year',
+      'id': BillingService.idYear1,
       'title': '1 Year',
       'price': '₹189',
+      'originalPrice': '₹348',
       'period': 'for 1 year',
       'desc': '₹15.7/mo • Save 46% compared to monthly',
       'badge': 'MOST POPULAR',
     },
     {
-      'id': 'redpdf_pro_lifetime',
+      'id': BillingService.idLifetime,
       'title': 'Lifetime',
       'price': '₹999',
+      'originalPrice': '₹1,999',
       'period': 'one-time',
       'desc': 'Pay once, keep PRO features forever',
       'badge': 'BEST VALUE',
     },
   ];
+
+  String _getOriginalPrice(
+    Map<String, dynamic> plan,
+    BillingService billingService,
+  ) {
+    final original = plan['originalPrice'] as String? ?? '';
+    if (original.isEmpty) return '';
+
+    final month1Product = billingService.getProduct(BillingService.idMonth1);
+    if (month1Product != null && month1Product.rawPrice > 0) {
+      final symbol = month1Product.currencySymbol.isNotEmpty
+          ? month1Product.currencySymbol
+          : '₹';
+      final planId = plan['id'] as String;
+      if (planId == BillingService.idMonths6) {
+        final total = month1Product.rawPrice * 6;
+        return '$symbol${total.toStringAsFixed(total % 1 == 0 ? 0 : 2)}';
+      } else if (planId == BillingService.idYear1 ||
+          planId == BillingService.idAnnualAlias) {
+        final total = month1Product.rawPrice * 12;
+        return '$symbol${total.toStringAsFixed(total % 1 == 0 ? 0 : 2)}';
+      }
+    }
+    return original;
+  }
 
   Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
@@ -72,7 +102,8 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
   Widget build(BuildContext context) {
     final pdfTheme = Theme.of(context).extension<PdfThemeExtension>()!;
     final colorScheme = Theme.of(context).colorScheme;
-    final userProvider = context.read<UserProvider>();
+    final userProvider = context.watch<UserProvider>();
+    final billingService = context.watch<BillingService>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -125,6 +156,46 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                       ),
                       const SizedBox(height: 22),
 
+                      if (userProvider.isPremium) ...[
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(
+                              0xFF10B981,
+                            ).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(
+                                0xFF10B981,
+                              ).withValues(alpha: 0.4),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.check_circle_rounded,
+                                color: Color(0xFF10B981),
+                                size: 18,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'RedPDF PRO is Active',
+                                style: TextStyle(
+                                  color: Color(0xFF10B981),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+
                       // ── Feature Highlights ──
                       _buildFeatureItem(
                         pdfTheme,
@@ -152,13 +223,27 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                       ),
                       const SizedBox(height: 20),
 
-                      // ── 4 Pricing Cards ──
-                      _buildPricingCards(pdfTheme, colorScheme, isDark),
+                      // ── 4 Pricing Cards (Live Google Play Prices) ──
+                      _buildPricingCards(
+                        pdfTheme,
+                        colorScheme,
+                        isDark,
+                        billingService,
+                      ),
                       const SizedBox(height: 24),
 
-                      // ── CTA Button ──
-                      _buildContinueButton(context, pdfTheme, userProvider),
-                      const SizedBox(height: 18),
+                      // ── CTA Continue / Buy Button ──
+                      _buildContinueButton(
+                        context,
+                        pdfTheme,
+                        userProvider,
+                        billingService,
+                      ),
+                      const SizedBox(height: 12),
+
+                      // ── Restore Purchases ──
+                      _buildRestoreButton(context, billingService),
+                      const SizedBox(height: 12),
 
                       // ── Footer Links ──
                       _buildFooter(colorScheme),
@@ -186,7 +271,11 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
         children: [
           const Row(
             children: [
-              Icon(Icons.workspace_premium_rounded, color: Color(0xFFEAB308), size: 22),
+              Icon(
+                Icons.workspace_premium_rounded,
+                color: Color(0xFFEAB308),
+                size: 22,
+              ),
               SizedBox(width: 8),
               Text(
                 'RedPDF PRO',
@@ -275,10 +364,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                 ),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    fontSize: 11.5,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(fontSize: 11.5, color: Colors.grey),
                 ),
               ],
             ),
@@ -292,13 +378,20 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
     PdfThemeExtension pdfTheme,
     ColorScheme colorScheme,
     bool isDark,
+    BillingService billingService,
   ) {
     return Column(
       children: List.generate(_plans.length, (index) {
         final plan = _plans[index];
+        final planId = plan['id'] as String;
         final isSelected = _selectedPlanIndex == index;
         final badge = (plan['badge'] as String);
         final hasBadge = badge.isNotEmpty;
+
+        // Fetch live localized price from Google Play if available
+        final liveProduct = billingService.getProduct(planId);
+        final displayPrice = liveProduct?.price ?? (plan['price'] as String);
+        final originalPrice = _getOriginalPrice(plan, billingService);
 
         return GestureDetector(
           onTap: () => setState(() => _selectedPlanIndex = index),
@@ -308,19 +401,20 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             decoration: BoxDecoration(
               color: isSelected
                   ? (isDark
-                      ? pdfTheme.gold.withValues(alpha: 0.16)
-                      : const Color(0xFFFFFBEB))
+                        ? pdfTheme.gold.withValues(alpha: 0.16)
+                        : const Color(0xFFFFFBEB))
                   : (isDark
-                      ? colorScheme.surface.withValues(alpha: 0.8)
-                      : colorScheme.surfaceContainerHighest
-                          .withValues(alpha: 0.45)),
+                        ? colorScheme.surface.withValues(alpha: 0.8)
+                        : colorScheme.surfaceContainerHighest.withValues(
+                            alpha: 0.45,
+                          )),
               borderRadius: BorderRadius.circular(15),
               border: Border.all(
                 color: isSelected
                     ? pdfTheme.gold
                     : (isDark
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : Colors.black.withValues(alpha: 0.08)),
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.black.withValues(alpha: 0.08)),
                 width: isSelected ? 2 : 1,
               ),
               boxShadow: isSelected
@@ -356,8 +450,8 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                               fontWeight: FontWeight.bold,
                               color: isSelected
                                   ? (isDark
-                                      ? Colors.white
-                                      : const Color(0xFF78350F))
+                                        ? Colors.white
+                                        : const Color(0xFF78350F))
                                   : null,
                             ),
                           ),
@@ -402,15 +496,41 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      plan['price'] as String,
-                      style: TextStyle(
-                        fontSize: 19,
-                        fontWeight: FontWeight.bold,
-                        color: isSelected ? pdfTheme.gold : null,
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        if (originalPrice.isNotEmpty) ...[
+                          Text(
+                            originalPrice,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark
+                                  ? Colors.grey.shade400
+                                  : Colors.grey.shade500,
+                              decoration: TextDecoration.lineThrough,
+                              decorationColor: isDark
+                                  ? Colors.redAccent.shade100
+                                  : Colors.red.shade400,
+                              decorationThickness: 1.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                        ],
+                        Text(
+                          displayPrice,
+                          style: TextStyle(
+                            fontSize: 19,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected ? pdfTheme.gold : null,
+                          ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 1),
                     Text(
                       plan['period'] as String,
                       style: TextStyle(
@@ -434,61 +554,139 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
     BuildContext context,
     PdfThemeExtension pdfTheme,
     UserProvider userProvider,
+    BillingService billingService,
   ) {
     final selected = _plans[_selectedPlanIndex];
-    final buttonLabel = selected['title'] == 'Lifetime'
-        ? 'Get Lifetime Access • ${selected['price']}'
-        : 'Continue • ${selected['price']} ${selected['period']}';
+    final productId = selected['id'] as String;
+    final liveProduct = billingService.getProduct(productId);
+    final displayPrice = liveProduct?.price ?? (selected['price'] as String);
+
+    final bool isCurrentPlanActive =
+        userProvider.isPremium && (userProvider.activePlanId == productId);
+
+    final buttonLabel = isCurrentPlanActive
+        ? 'Current Plan Active'
+        : selected['title'] == 'Lifetime'
+        ? 'Get Lifetime Access • $displayPrice'
+        : 'Continue • $displayPrice ${selected['period']}';
+
+    final isBusy = billingService.isPurchasing;
 
     return InkWell(
-      onTap: () {
-        userProvider.togglePremium();
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'PRO Unlocked for ${selected['price']}! (Billing Integration Next)',
-            ),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      },
+      onTap: isBusy || isCurrentPlanActive
+          ? null
+          : () async {
+              final started = await billingService.buyProduct(productId);
+              if (!started &&
+                  billingService.purchaseError != null &&
+                  context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(billingService.purchaseError!),
+                    backgroundColor: Colors.red.shade700,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
       borderRadius: BorderRadius.circular(28),
       child: Container(
         width: double.infinity,
         height: 54,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(28),
-          gradient: LinearGradient(colors: [pdfTheme.gold, pdfTheme.goldLight]),
+          gradient: LinearGradient(
+            colors: isCurrentPlanActive
+                ? const [Color(0xFF10B981), Color(0xFF059669)]
+                : [pdfTheme.gold, pdfTheme.goldLight],
+          ),
           boxShadow: [
             BoxShadow(
-              color: pdfTheme.gold.withValues(alpha: 0.35),
+              color:
+                  (isCurrentPlanActive
+                          ? const Color(0xFF10B981)
+                          : pdfTheme.gold)
+                      .withValues(alpha: 0.35),
               blurRadius: 16,
               offset: const Offset(0, 5),
             ),
           ],
         ),
         child: Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                buttonLabel,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+          child: isBusy
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2.5,
+                  ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      buttonLabel,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      isCurrentPlanActive
+                          ? Icons.check_circle_rounded
+                          : Icons.arrow_forward_rounded,
+                      color: Colors.white,
+                      size: 19,
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              const Icon(
-                Icons.arrow_forward_rounded,
-                color: Colors.white,
-                size: 19,
-              ),
-            ],
-          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildRestoreButton(
+    BuildContext context,
+    BillingService billingService,
+  ) {
+    return TextButton.icon(
+      onPressed: billingService.isPurchasing
+          ? null
+          : () async {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Checking for previous purchases...'),
+                  duration: Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              await billingService.restorePurchases();
+              if (context.mounted) {
+                if (billingService.purchaseError != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(billingService.purchaseError!),
+                      backgroundColor: Colors.red.shade700,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Purchase restore completed.'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              }
+            },
+      icon: const Icon(Icons.restore_rounded, size: 16),
+      label: const Text(
+        'Restore Purchases',
+        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -504,11 +702,19 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
       children: [
         GestureDetector(
           onTap: () => _launchUrl(AppConstants.termsOfServiceUrl),
-          child: Text('Terms of Service', textAlign: TextAlign.center, style: style),
+          child: Text(
+            'Terms of Service',
+            textAlign: TextAlign.center,
+            style: style,
+          ),
         ),
         GestureDetector(
           onTap: () => _launchUrl(AppConstants.privacyPolicyUrl),
-          child: Text('Privacy Policy', textAlign: TextAlign.center, style: style),
+          child: Text(
+            'Privacy Policy',
+            textAlign: TextAlign.center,
+            style: style,
+          ),
         ),
       ],
     );
