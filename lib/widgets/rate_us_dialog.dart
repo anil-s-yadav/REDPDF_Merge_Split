@@ -97,7 +97,7 @@ class RateUsDialog extends StatelessWidget {
 
             // ── Title ──
             Text(
-                  'Enjoying RedPDF?',
+                  'Enjoying ${AppConstants.appName}?',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,

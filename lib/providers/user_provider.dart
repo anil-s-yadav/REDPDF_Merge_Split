@@ -18,6 +18,10 @@ class UserProvider with ChangeNotifier {
   String get email => _email;
 
   UserProvider() {
+    if (BillingService.instance.isPremium) {
+      _isPremium = true;
+      _activePlanId = BillingService.instance.activeProductId;
+    }
     _loadFromPrefs();
     // Connect to BillingService status changes
     BillingService.instance.onPremiumStatusChanged = (isPremium, productId) {
@@ -27,8 +31,11 @@ class UserProvider with ChangeNotifier {
 
   Future<void> _loadFromPrefs() async {
     _prefs = await SharedPreferences.getInstance();
-    _isPremium = _prefs?.getBool(_premiumKey) ?? false;
-    _activePlanId = _prefs?.getString(_activePlanKey);
+    final billingPremium = _prefs?.getBool('billing_is_premium') ?? false;
+    final userPremium = _prefs?.getBool(_premiumKey) ?? false;
+    _isPremium = billingPremium || userPremium;
+    _activePlanId = _prefs?.getString('billing_active_product_id') ??
+        _prefs?.getString(_activePlanKey);
     notifyListeners();
   }
 

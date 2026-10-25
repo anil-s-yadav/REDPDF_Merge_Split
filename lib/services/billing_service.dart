@@ -12,17 +12,15 @@ class BillingService with ChangeNotifier {
 
   // ── Product IDs ────────────────────────────────────────────────────────────
   // Matches Google Play Console In-App Products & Subscriptions
-  static const String idMonth1 = 'redpdf_pro_1month';
-  static const String idMonths6 = 'redpdf_pro_6months';
-  static const String idYear1 = 'redpdf_pro_1year';
-  static const String idAnnualAlias = 'redpdf_pro_annual'; // Alias for 1 Year
-  static const String idLifetime = 'redpdf_pro_lifetime';
+  static const String idMonth1 = 'pdfbitz_merge_pro_1month';
+  static const String idMonths6 = 'pdfbitz_merge_pro_6months';
+  static const String idYear1 = 'pdfbitz_merge_pro_1year';
+  static const String idLifetime = 'pdfbitz_merge_pro_lifetime';
 
   static const Set<String> allProductIds = {
     idMonth1,
     idMonths6,
     idYear1,
-    idAnnualAlias,
     idLifetime,
   };
 
@@ -43,6 +41,12 @@ class BillingService with ChangeNotifier {
 
   bool _isPurchasing = false;
   bool get isPurchasing => _isPurchasing;
+
+  bool _isPremium = false;
+  bool get isPremium => _isPremium;
+
+  String? _activeProductId;
+  String? get activeProductId => _activeProductId;
 
   String? _purchaseError;
   String? get purchaseError => _purchaseError;
@@ -133,13 +137,6 @@ class BillingService with ChangeNotifier {
   ProductDetails? getProduct(String id) {
     if (_products.containsKey(id)) {
       return _products[id];
-    }
-    // Handle annual alias fallback
-    if (id == idYear1 && _products.containsKey(idAnnualAlias)) {
-      return _products[idAnnualAlias];
-    }
-    if (id == idAnnualAlias && _products.containsKey(idYear1)) {
-      return _products[idYear1];
     }
     return null;
   }
@@ -307,12 +304,12 @@ class BillingService with ChangeNotifier {
   Future<void> _loadOfflineEntitlement() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final isPremium = prefs.getBool(_prefKeyIsPremium) ?? false;
-      final productId = prefs.getString(_prefKeyActiveProductId);
+      _isPremium = prefs.getBool(_prefKeyIsPremium) ?? false;
+      _activeProductId = prefs.getString(_prefKeyActiveProductId);
 
-      if (isPremium) {
-        log('[BillingService] Offline entitlement active for $productId');
-        onPremiumStatusChanged?.call(true, productId);
+      if (_isPremium) {
+        log('[BillingService] Offline entitlement active for $_activeProductId');
+        onPremiumStatusChanged?.call(true, _activeProductId);
       }
     } catch (e) {
       log('[BillingService] Error reading offline entitlement: $e');
@@ -325,6 +322,8 @@ class BillingService with ChangeNotifier {
     required String productId,
     required String token,
   }) async {
+    _isPremium = isPremium;
+    _activeProductId = productId;
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_prefKeyIsPremium, isPremium);
@@ -341,6 +340,8 @@ class BillingService with ChangeNotifier {
 
   /// Clear entitlement (e.g. if subscription expired or test reset)
   Future<void> clearEntitlement() async {
+    _isPremium = false;
+    _activeProductId = null;
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_prefKeyIsPremium, false);

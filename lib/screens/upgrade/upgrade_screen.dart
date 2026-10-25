@@ -23,7 +23,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
       'title': '1 Month',
       'price': '₹29',
       'originalPrice': '',
-      'period': 'for 1 month',
+      'period': '/ month',
       'desc': 'Remove ads & faster processing for 1 month',
       'badge': '',
     },
@@ -72,8 +72,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
       if (planId == BillingService.idMonths6) {
         final total = month1Product.rawPrice * 6;
         return '$symbol${total.toStringAsFixed(total % 1 == 0 ? 0 : 2)}';
-      } else if (planId == BillingService.idYear1 ||
-          planId == BillingService.idAnnualAlias) {
+      } else if (planId == BillingService.idYear1) {
         final total = month1Product.rawPrice * 12;
         return '$symbol${total.toStringAsFixed(total % 1 == 0 ? 0 : 2)}';
       }
@@ -674,9 +673,15 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                     ),
                   );
                 } else {
+                  final isPremium = context.read<UserProvider>().isPremium;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Purchase restore completed.'),
+                    SnackBar(
+                      content: Text(
+                        isPremium
+                            ? 'PRO access restored successfully!'
+                            : 'No active purchases found for this Google account.',
+                      ),
+                      backgroundColor: isPremium ? const Color(0xFF10B981) : null,
                       behavior: SnackBarBehavior.floating,
                     ),
                   );

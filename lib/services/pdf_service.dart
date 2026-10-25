@@ -141,10 +141,6 @@ class PdfService {
     onProgress?.call('Saving split PDFs...');
     List<String> outputs = [];
     for (int i = 0; i < tempPaths.length; i++) {
-      final range = uniqueRanges[i];
-      final isSinglePage = range.from == range.to;
-      final int pagesInThisRange = range.to - range.from + 1;
-
       final timestamp = _getFormattedDateTime();
       final uniqueSuffix = uniqueRanges.length > 1 ? '_${i + 1}' : '';
       final baseName = (customFileName != null && customFileName.isNotEmpty)

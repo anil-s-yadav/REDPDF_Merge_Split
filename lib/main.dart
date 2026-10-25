@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stitch/widgets/navigation.dart';
+import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
@@ -43,7 +44,7 @@ class MainApp extends StatelessWidget {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return MaterialApp(
-          title: 'PDF Master',
+          title: AppConstants.appName,
           debugShowCheckedModeBanner: false,
           theme: AppTheme.getLightTheme(),
           darkTheme: AppTheme.getDarkTheme(),

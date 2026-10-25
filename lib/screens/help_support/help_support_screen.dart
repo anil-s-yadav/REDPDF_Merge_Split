@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/pdf_theme_extension.dart';
+import '../../providers/user_provider.dart';
 import '../../services/billing_service.dart';
 
 class HelpSupportScreen extends StatefulWidget {
@@ -16,8 +17,6 @@ class HelpSupportScreen extends StatefulWidget {
 
 class _HelpSupportScreenState extends State<HelpSupportScreen> {
   String _selectedCategory = 'All';
-  String _searchQuery = '';
-  final TextEditingController _searchController = TextEditingController();
 
   final List<String> _categories = const [
     'All',
@@ -176,27 +175,15 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
   }
 
   @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final pdfTheme = Theme.of(context).extension<PdfThemeExtension>()!;
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final billing = context.watch<BillingService>();
 
-    // Filter FAQs by category and search query
+    // Filter FAQs by category
     final filteredFaqs = _faqList.where((item) {
-      final matchesCategory =
-          _selectedCategory == 'All' || item.category == _selectedCategory;
-      final matchesQuery =
-          _searchQuery.isEmpty ||
-          item.question.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          item.answer.toLowerCase().contains(_searchQuery.toLowerCase());
-      return matchesCategory && matchesQuery;
+      return _selectedCategory == 'All' || item.category == _selectedCategory;
     }).toList();
 
     return Scaffold(
@@ -402,9 +389,17 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                           ),
                         );
                       } else {
+                        final isPremium =
+                            context.read<UserProvider>().isPremium;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Purchase restore completed.'),
+                          SnackBar(
+                            content: Text(
+                              isPremium
+                                  ? 'PRO access restored successfully!'
+                                  : 'No active purchases found for this Google account.',
+                            ),
+                            backgroundColor:
+                                isPremium ? const Color(0xFF10B981) : null,
                             behavior: SnackBarBehavior.floating,
                           ),
                         );
